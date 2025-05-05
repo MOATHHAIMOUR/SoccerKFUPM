@@ -76,6 +76,8 @@ namespace SoccerKFUPM.Infrastructure.Repository
             services.AddScoped<IPlayerServices, PlayerServices>();
             services.AddScoped<ISharedServices, SharedServices>();
             services.AddScoped<IAuthenticationServices, AuthenticationServices>();
+            services.AddScoped<ITournamentServices, TournamentServices>();
+
             return services;
         }
     }

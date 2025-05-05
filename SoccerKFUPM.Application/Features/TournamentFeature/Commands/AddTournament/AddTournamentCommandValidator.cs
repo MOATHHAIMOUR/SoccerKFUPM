@@ -6,9 +6,6 @@ public class AddTournamentCommandValidator : AbstractValidator<AddTournamentComm
 {
     public AddTournamentCommandValidator()
     {
-        RuleFor(x => x.AddTournamentDTO.Number)
-            .NotEmpty().WithMessage("Tournament number is required.")
-            .MaximumLength(50).WithMessage("Tournament number cannot exceed 50 characters.");
 
         RuleFor(x => x.AddTournamentDTO.Name)
             .NotEmpty().WithMessage("Tournament name is required.")

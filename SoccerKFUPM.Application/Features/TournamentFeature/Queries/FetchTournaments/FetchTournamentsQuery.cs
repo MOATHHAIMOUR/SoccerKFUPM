@@ -8,16 +8,16 @@ public class FetchTournamentsQuery : IRequest<ApiResponse<List<TournamentDTO>>>
 {
     public string? TournamentNumber { get; set; }
     public string? TournamentName { get; set; }
-    public string? StartDate { get; set; }
-    public string? EndDate { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
 
     public FetchTournamentsQuery(
         string? tournamentNumber = null,
         string? tournamentName = null,
-        string? startDate = null,
-        string? endDate = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
         int pageNumber = 1,
         int pageSize = 10)
     {

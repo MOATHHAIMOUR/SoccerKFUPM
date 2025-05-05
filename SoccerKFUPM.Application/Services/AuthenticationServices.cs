@@ -46,7 +46,12 @@ namespace SoccerKFUPM.Application.Services
                 return Result<AuthenticationResponseDTO>.Failure(Error.UnauthorizedError("Invalid credentials"), System.Net.HttpStatusCode.Unauthorized);
 
 
-            var newToken = AuthHelpers.GenerateJwtToken(user, _jwtSettings);
+            // get user Roles
+            var roles = await _userManager.GetRolesAsync(user);
+
+
+
+            var newToken = AuthHelpers.GenerateJwtToken(user, _jwtSettings, roles.ToList());
 
             var newRefreshToken = AuthHelpers.GetRefreshToken();
 
@@ -62,8 +67,6 @@ namespace SoccerKFUPM.Application.Services
 
             });
 
-            // get user Roles
-            var roles = await _userManager.GetRolesAsync(user);
 
 
             return Result<AuthenticationResponseDTO>.Success(new AuthenticationResponseDTO
@@ -83,8 +86,12 @@ namespace SoccerKFUPM.Application.Services
             if (!result)
                 return Result<AuthenticationResponseDTO>.Failure(Error.UnauthorizedError("Invalid or expired refresh token."), System.Net.HttpStatusCode.Unauthorized);
 
+            // get user Roles
+            var roles = await _userManager.GetRolesAsync(user);
 
-            string newToken = AuthHelpers.GenerateJwtToken(user, _jwtSettings);
+
+
+            string newToken = AuthHelpers.GenerateJwtToken(user, _jwtSettings, roles.ToList());
             string newRefreshToken = AuthHelpers.GetRefreshToken();
             DateTime RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
             //save new refreshToken
@@ -98,8 +105,6 @@ namespace SoccerKFUPM.Application.Services
 
             });
 
-            // get user Roles
-            var roles = await _userManager.GetRolesAsync(user);
 
             return Result<AuthenticationResponseDTO>.Success(new AuthenticationResponseDTO
             {
@@ -159,8 +164,12 @@ namespace SoccerKFUPM.Application.Services
                 );
             }
 
+            // get user Roles
+            var roles = await _userManager.GetRolesAsync(newUser);
+
+
             // ✅ 4. Generate JWT and Refresh Token
-            string jwtToken = AuthHelpers.GenerateJwtToken(newUser, _jwtSettings);
+            string jwtToken = AuthHelpers.GenerateJwtToken(newUser, _jwtSettings, roles.ToList());
             string refreshToken = AuthHelpers.GetRefreshToken();
             DateTime refreshTokenExpiry = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
 

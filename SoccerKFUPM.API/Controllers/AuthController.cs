@@ -23,11 +23,11 @@ namespace SoccerKFUPM.API.Controllers
         [HttpPost("authenticate")]
         [AllowAnonymous]
         [SwaggerOperation(
-            Summary = "Authenticate user",
+            Summary = "Authenticate user (AuthenticationRequestDTO)",
             Description = "Validate credentials and return JWT plus refresh token in cookie stored."
         )]
         public async Task<ActionResult<ApiResponse<AuthenticationResponseDTO>>> Authenticate(
-            [FromBody] AuthenticationRequest AuthenticationRequest)
+            [FromBody] AuthenticationRequestDTO AuthenticationRequest)
         {
             var result = await _mediator.Send(new AuthenticationCommand(AuthenticationRequest));
 
@@ -48,7 +48,7 @@ namespace SoccerKFUPM.API.Controllers
         [HttpPost("refresh")]
         [AllowAnonymous]
         [SwaggerOperation(
-            Summary = "Refresh access token",
+            Summary = "Refresh access token ",
             Description = "Use a valid refresh token to obtain a new JWT and refresh token plus refresh token in cookie stored."
         )]
         public async Task<ActionResult<ApiResponse<AuthenticationResponseDTO>>> RefreshToken()
@@ -80,7 +80,7 @@ namespace SoccerKFUPM.API.Controllers
         [HttpPost("register")]
         [AllowAnonymous]
         [SwaggerOperation(
-                Summary = "Register user",
+                Summary = "Register user (RegsterAccountRequestDTO)",
                 Description = "Create a new user account and return basic user info or tokens plus refresh token in cookie stored."
             )]
         public async Task<ActionResult<ApiResponse<AuthenticationResponseDTO>>> Register(
@@ -102,7 +102,8 @@ namespace SoccerKFUPM.API.Controllers
 
 
         [HttpGet("roles")]
-        [SwaggerOperation(Summary = "Fetch all roles", Description = "Retrieve a list of all roles available in the system.")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Fetch all roles (RoleDTO)", Description = "Retrieve a list of all roles available in the system.")]
         public async Task<ActionResult<ApiResponse<List<RoleDTO>>>> FetchRoles()
         {
             var result = await _mediator.Send(new GetAllRolesQuery());

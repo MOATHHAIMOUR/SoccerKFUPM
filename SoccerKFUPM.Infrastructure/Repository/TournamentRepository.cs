@@ -90,7 +90,7 @@ namespace SoccerKFUPM.Infrastructure.Repository
         }
 
         public async Task<(List<Tournament> Tournaments, int TotalCount)> SearchTournamentsAsync(
-            string? number, string? name, string? startDate, string? endDate, int pageNumber, int pageSize)
+            string? number, string? name, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize)
         {
             using var connection = new SqlConnection(_connection.ConnectionString);
             using var command = new SqlCommand("SP_SearchTournaments", connection)

@@ -22,7 +22,7 @@ public class TournamentServices : ITournamentServices
     public async Task<Result<bool>> AddTournamentAsync(Tournament tournament)
     {
         int insertedId = await _tournamentRepository.AddTournamentAsync(tournament);
-        return Result<bool>.Success(insertedId>0);
+        return Result<bool>.Success(insertedId > 0);
     }
 
     public async Task<Result<bool>> DeleteTournamentAsync(int tournamentId)
@@ -30,15 +30,15 @@ public class TournamentServices : ITournamentServices
         bool result = await _tournamentRepository.DeleteTournamentAsync(tournamentId);
         if (!result)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"));
+            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"), System.Net.HttpStatusCode.NotFound);
         }
         return Result<bool>.Success(result);
     }
     public async Task<Result<(List<TournamentDTO> tournaments, int totalCount)>> GetAllTournamentsAsync(
         string? number = null,
         string? name = null,
-        string? startDate = null,
-        string? endDate = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
         int pageNumber = 1,
         int pageSize = 10)
     {
@@ -60,7 +60,7 @@ public class TournamentServices : ITournamentServices
         var tournament = await _tournamentRepository.GetTournamentByIdAsync(tournamentId);
         if (tournament == null)
         {
-            return Result<TournamentDTO>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"));
+            return Result<TournamentDTO>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"), System.Net.HttpStatusCode.NotFound);
         }
         var tournamentDTO = _mapper.Map<TournamentDTO>(tournament);
         return Result<TournamentDTO>.Success(tournamentDTO);
@@ -69,9 +69,10 @@ public class TournamentServices : ITournamentServices
     public async Task<Result<bool>> UpdateTournamentAsync(Tournament tournament)
     {
         var exists = await _tournamentRepository.GetTournamentByIdAsync(tournament.TournamentId);
+
         if (exists == null)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournament.TournamentId}"));
+            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournament.TournamentId}"), System.Net.HttpStatusCode.NotFound);
         }
 
         bool result = await _tournamentRepository.UpdateTournamentAsync(tournament);
