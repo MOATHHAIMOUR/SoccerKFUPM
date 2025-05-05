@@ -59,7 +59,6 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
         }
     }
 
-
     public async Task<Player?> GetPlayerByIdAsync(int playerId)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);
@@ -87,7 +86,6 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
 
         return null;
     }
-
 
     public async Task<(List<PlayerView> Players, int TotalCount)> GetAllPlayersAsync(
         int? playerId,

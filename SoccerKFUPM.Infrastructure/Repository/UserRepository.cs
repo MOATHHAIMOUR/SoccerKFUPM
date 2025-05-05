@@ -8,7 +8,6 @@ public class UserRepository(IDbConnection connection) : IUserRepository
 
     private readonly IDbConnection _connection = connection;
 
-
     public async Task<User?> GetUserByIdOrUserName(int? UserId, string? UserName)
     {
         User? user = null;
