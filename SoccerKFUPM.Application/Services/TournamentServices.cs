@@ -30,7 +30,7 @@ public class TournamentServices : ITournamentServices
         bool result = await _tournamentRepository.DeleteTournamentAsync(tournamentId);
         if (!result)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"), System.Net.HttpStatusCode.NotFound);
+            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}  is not found"), System.Net.HttpStatusCode.NotFound);
         }
         return Result<bool>.Success(result);
     }
@@ -60,7 +60,7 @@ public class TournamentServices : ITournamentServices
         var tournament = await _tournamentRepository.GetTournamentByIdAsync(tournamentId);
         if (tournament == null)
         {
-            return Result<TournamentDTO>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId}"), System.Net.HttpStatusCode.NotFound);
+            return Result<TournamentDTO>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
         var tournamentDTO = _mapper.Map<TournamentDTO>(tournament);
         return Result<TournamentDTO>.Success(tournamentDTO);
@@ -72,10 +72,22 @@ public class TournamentServices : ITournamentServices
 
         if (exists == null)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournament.TournamentId}"), System.Net.HttpStatusCode.NotFound);
+            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournament.TournamentId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
 
         bool result = await _tournamentRepository.UpdateTournamentAsync(tournament);
+        return Result<bool>.Success(result);
+    }
+
+    public async Task<Result<bool>> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds)
+    {
+        var tournament = await _tournamentRepository.GetTournamentByIdAsync(tournamentId);
+        if (tournament == null)
+        {
+            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId} is not found"), System.Net.HttpStatusCode.NotFound);
+        }
+
+        var result = await _tournamentRepository.AssignTeamsToTournamentAsync(tournamentId, teamIds);
         return Result<bool>.Success(result);
     }
 }

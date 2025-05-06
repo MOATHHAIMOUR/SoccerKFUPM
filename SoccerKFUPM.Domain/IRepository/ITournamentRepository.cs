@@ -10,4 +10,5 @@ public interface ITournamentRepository
     public Task<bool> DeleteTournamentAsync(int tournamentId);
     public Task<(List<Tournament> Tournaments, int TotalCount)> SearchTournamentsAsync(
             string? number, string? name, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize);
+    public Task<bool> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds);
 }

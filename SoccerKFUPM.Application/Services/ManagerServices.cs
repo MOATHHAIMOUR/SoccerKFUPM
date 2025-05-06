@@ -23,9 +23,7 @@ public class ManagerServices : IManagerServices
     public async Task<Result<bool>> AddManagerAsync(Manager manager)
     {
 
-        var result = await _managerRepository.AddManagerAsync(manager);
-        if (!result)
-            return Result<bool>.Failure(DomainErrors.Manager.FailedToAdd);
+        await _managerRepository.AddManagerAsync(manager);
 
         return Result<bool>.Success(true);
 
@@ -36,7 +34,7 @@ public class ManagerServices : IManagerServices
 
         var manager = await _managerRepository.GetManagerByIdAsync(managerId);
         if (manager is null)
-            return Result<ManagerDTO>.Failure(DomainErrors.Manager.NotFound);
+            return Result<ManagerDTO>.Failure(Error.RecoredNotFound($"manager with id: {managerId} is not found"), System.Net.HttpStatusCode.NotFound);
 
         var managerDto = _mapper.Map<ManagerDTO>(manager);
         return Result<ManagerDTO>.Success(managerDto);

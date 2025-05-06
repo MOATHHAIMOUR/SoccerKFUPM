@@ -4,6 +4,7 @@ using SoccerKFUPM.API.Controllers.Base;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.TournamentDTOs;
 using SoccerKFUPM.Application.Features.TournamentFeature.Commands.AddTournament;
+using SoccerKFUPM.Application.Features.TournamentFeature.Commands.AssignTeamsInTournament;
 using SoccerKFUPM.Application.Features.TournamentFeature.Commands.DeleteTournament;
 using SoccerKFUPM.Application.Features.TournamentFeature.Commands.UpdateTournament;
 using SoccerKFUPM.Application.Features.TournamentFeature.Queries.FetchTournamentById;
@@ -89,6 +90,18 @@ namespace SoccerKFUPM.API.Controllers
         public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
         {
             var result = await _mediator.Send(new DeleteTournamentCommand(id));
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [HttpPost("assign-teams")]
+        [SwaggerOperation(Summary = "Assign teams to a tournament (AssignTeamsInTournamentDTO)", Description = "Assigns multiple teams to a tournament.")]
+        public async Task<ActionResult<ApiResponse<bool>>> AssignTeams([FromBody] AssignTeamsInTournamentDTO assignTeamsDTO)
+        {
+            var result = await _mediator.Send(new AssignTeamsInTournamentCommand(assignTeamsDTO));
             return StatusCode((int)result.StatusCode, result);
         }
     }

@@ -47,7 +47,7 @@ public class PlayerServices : IPlayerServices
         var playerDto = _mapper.Map<PlayerDTO>(player);
         if (player == null)
         {
-            return Result<PlayerDTO>.Failure(Error.RecoredNotFound($"Player with id: {playerId}"));
+            return Result<PlayerDTO>.Failure(Error.RecoredNotFound($"Player with id: {playerId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
 
         return Result<PlayerDTO>.Success(playerDto);

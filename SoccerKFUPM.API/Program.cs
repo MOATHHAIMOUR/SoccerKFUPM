@@ -95,7 +95,6 @@ builder.Services.AddInfra();
 
 
 
-
 // FluentValidation setup
 builder.Services.AddValidatorsFromAssemblyContaining<AddPlayerCommandValidator>();
 

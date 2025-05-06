@@ -19,4 +19,5 @@ public interface ITournamentServices
 
     public Task<Result<bool>> UpdateTournamentAsync(Tournament tournament);
     public Task<Result<bool>> DeleteTournamentAsync(int tournamentId);
+    public Task<Result<bool>> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds);
 }

@@ -28,7 +28,11 @@ namespace SoccerKFUPM.Infrastructure.Repository
             var jwtSettingsSection = configuration.GetSection("JwtSettings");
             var secretKey = jwtSettingsSection["SecretKey"];
             var keyBytes = Encoding.UTF8.GetBytes(secretKey!);
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer((options) =>
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer((options) =>
             {
                 options.TokenValidationParameters = new()
                 {

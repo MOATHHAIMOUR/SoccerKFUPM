@@ -84,6 +84,11 @@ public class GlobalExeptionHandlingMiddleware
                         apiError.Message = "Request failed due to a database conflict. Please retry.";
                         break;
 
+                    case 515: // Cannot insert the value NULL into column; column does not allow nulls
+                        statusCode = HttpStatusCode.BadRequest;
+                        apiError.Message = "Missing required data: a field was left empty.";
+                        break;
+
                     default:
                         statusCode = HttpStatusCode.InternalServerError;
                         apiError.Message = "A database error occurred. Please contact support.";

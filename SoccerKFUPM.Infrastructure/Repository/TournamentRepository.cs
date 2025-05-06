@@ -131,5 +131,20 @@ namespace SoccerKFUPM.Infrastructure.Repository
             return (tournaments, totalCount);
         }
 
+        public async Task<bool> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_AssignTeamsToTournament", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+            command.Parameters.AddWithValue("@TeamIds", string.Join(",", teamIds)); // Pass team IDs as comma-separated string
+
+            await connection.OpenAsync();
+            await command.ExecuteNonQueryAsync();
+            return true;
+        }
     }
 }

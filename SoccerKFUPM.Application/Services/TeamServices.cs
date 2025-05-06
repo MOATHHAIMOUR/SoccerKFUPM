@@ -61,7 +61,7 @@ public class TeamServices : ITeamServices
         var team = await _teamRepository.GetTeamByIdAsync(teamId);
         if (team == null)
         {
-            return Result<TeamDTO>.Failure(Error.RecoredNotFound($"Team with id: {teamId}"));
+            return Result<TeamDTO>.Failure(Error.RecoredNotFound($"Team with id: {teamId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
         var teamDto = _mapper.Map<TeamDTO>(team);
         return Result<TeamDTO>.Success(teamDto);
@@ -72,7 +72,7 @@ public class TeamServices : ITeamServices
         bool result = await _teamRepository.UpdateTeamAsync(team);
         if (!result)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Team with id: {team.TeamId}"), System.Net.HttpStatusCode.NotFound);
+            return Result<bool>.Failure(Error.RecoredNotFound($"Team with id: {team.TeamId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
         return Result<bool>.Success(result);
     }

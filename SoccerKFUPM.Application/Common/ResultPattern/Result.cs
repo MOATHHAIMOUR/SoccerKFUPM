@@ -28,7 +28,7 @@ namespace SoccerKFUPM.Application.Common.ResultPattern
 
         public static Result<T> Success(T value) => new(value);
 
-        public static Result<T> Failure(Error error, HttpStatusCode statusCode = HttpStatusCode.NotFound) =>
+        public static Result<T> Failure(Error error, HttpStatusCode statusCode) =>
             new(error, statusCode);
     }
 }
