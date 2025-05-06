@@ -9,6 +9,8 @@ public enum ContactType
     Email=1,
     /// <summary>Phone contact (send value 2)</summary>
     Phone=2,
+    /// <summary>WhatsApp contact (send value 3)</summary>
+    WhatsApp=3
 }
 
 

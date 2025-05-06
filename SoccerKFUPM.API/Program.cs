@@ -18,8 +18,8 @@ using System.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ Use Azure-assigned port for Linux container
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+//builder.WebHost.UseUrls($"http://*:{port}");
 
 Console.WriteLine("🟢 PORT = " + Environment.GetEnvironmentVariable("PORT"));
 

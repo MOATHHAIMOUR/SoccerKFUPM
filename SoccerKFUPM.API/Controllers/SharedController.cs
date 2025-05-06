@@ -19,7 +19,7 @@ namespace SoccerKFUPM.API.Controllers
         }
 
         [HttpGet("countries")]
-        [SwaggerOperation(Summary = "Fetch all countries", Description = "Retrieve a list of all countries available in the system.")]
+        [SwaggerOperation(Summary = "Fetch all countries (FetchCountriesDTO)", Description = "Retrieve a list of all countries available in the system.")]
         public async Task<ActionResult<ApiResponse<List<CountryDTO>>>> FetchCountries()
         {
             var result = await _mediator.Send(new FetchCountriesQuery());
@@ -27,7 +27,7 @@ namespace SoccerKFUPM.API.Controllers
         }
 
         [HttpGet("departments")]
-        [SwaggerOperation(Summary = "Fetch all departments", Description = "Retrieve a list of all departments available in the system.")]
+        [SwaggerOperation(Summary = "Fetch all departments (DepartmentDTO)", Description = "Retrieve a list of all departments available in the system.")]
         public async Task<ActionResult<ApiResponse<List<DepartmentDTO>>>> FetchDepartments()
         {
             var result = await _mediator.Send(new FetchDepartmentsQuery());

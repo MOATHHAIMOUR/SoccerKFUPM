@@ -10,6 +10,9 @@ namespace SoccerKFUPM.Application.DTOs.TournamentDTOs.Profile
             CreateMap<UpdateTournamentDTO, Tournament>();
             CreateMap<Tournament, TournamentDTO>();
 
+            CreateMap<Tournament, TournamentDTO>();
+            CreateMap<AddTournamentDTO, Tournament>();
+
         }
     }
 

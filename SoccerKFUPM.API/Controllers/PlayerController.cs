@@ -1,6 +1,10 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SoccerKFUPM.API.Controllers.Base;
+using SoccerKFUPM.Application.Common.ResultPattern;
+using SoccerKFUPM.Application.DTOs.PlayerDTOs;
+using SoccerKFUPM.Application.Features.PlayerFeature.Commands.AddPlayer;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace SoccerKFUPM.API.Controllers
 {
@@ -14,13 +18,13 @@ namespace SoccerKFUPM.API.Controllers
 
 
 
-        //    [HttpPost("create")]
-        //    [SwaggerOperation(Summary = "Create a new player", Description = "Send a valid AddPlayerDTO to register a new player in the system.")]
-        //    public async Task<ActionResult<ApiResponse<bool>>> CreatePlayer([FromBody] AddPlayerDTO playerDTO)
-        //    {
-        //        var result = await _mediator.Send(new AddPlayerCommand(playerDTO));
-        //        return StatusCode((int)result.StatusCode, result);
-        //    }
+        [HttpPost("")]
+        [SwaggerOperation(Summary = "Create a new player (AddPlayerDTO)", Description = "Send a valid AddPlayerDTO to register a new player in the system.")]
+        public async Task<ActionResult<ApiResponse<bool>>> CreatePlayer([FromBody] AddPlayerDTO playerDTO)
+        {
+            var result = await _mediator.Send(new AddPlayerCommand(playerDTO));
+            return StatusCode((int)result.StatusCode, result);
+        }
 
 
 

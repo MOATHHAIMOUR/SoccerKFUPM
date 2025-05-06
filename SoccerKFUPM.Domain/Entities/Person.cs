@@ -9,7 +9,7 @@ public class Person
     public  string? ThirdName { get; set; }
     public required string LastName { get; set; }
     public  DateTime DateOfBirth { get; set; }
-    public int NationalityId { get; set; }
+    public int? NationalityId { get; set; }
     public List<PersonalContactInfo> PersonalContactInfos = null!;
     
 }

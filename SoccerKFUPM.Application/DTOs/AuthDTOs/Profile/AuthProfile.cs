@@ -1,9 +1,14 @@
-﻿namespace SoccerKFUPM.Application.DTOs.AuthDTOs.Profile
+﻿using SoccerKFUPM.Domain.Entities;
+
+namespace SoccerKFUPM.Application.DTOs.AuthDTOs.Profile
 {
     public class AuthProfile : AutoMapper.Profile
     {
         public AuthProfile()
         {
+            CreateMap<Role, RoleDTO>();
+
+
             //      CreateMap<RegisterUserDTO, User>()
             //.ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
             //.ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))

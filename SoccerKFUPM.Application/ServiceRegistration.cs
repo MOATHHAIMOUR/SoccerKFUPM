@@ -11,8 +11,6 @@ using SoccerKFUPM.Application.Services.IServises;
 using System.Reflection;
 using System.Text;
 
-
-
 namespace SoccerKFUPM.Infrastructure.Repository
 {
     public static class DependencyInjection
@@ -77,10 +75,10 @@ namespace SoccerKFUPM.Infrastructure.Repository
             services.AddScoped<ISharedServices, SharedServices>();
             services.AddScoped<IAuthenticationServices, AuthenticationServices>();
             services.AddScoped<ITournamentServices, TournamentServices>();
+            services.AddScoped<ITeamServices, TeamServices>();
+            services.AddScoped<IManagerServices, ManagerServices>();
 
             return services;
         }
     }
-
-
 }

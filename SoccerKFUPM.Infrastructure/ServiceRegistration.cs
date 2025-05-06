@@ -17,6 +17,8 @@ namespace SoccerKFUPM.Infrastructure
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IPersonRepository, PersonRepository>();
             services.AddScoped<ITournamentRepository, TournamentRepository>();
+            services.AddScoped<ITeamRepository, TeamRepository>();
+            services.AddScoped<IManagerRepository, ManagerRepository>();
 
             return services;
         }

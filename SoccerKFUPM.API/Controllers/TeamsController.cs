@@ -1,0 +1,92 @@
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using SoccerKFUPM.API.Controllers.Base;
+using SoccerKFUPM.Application.Common.ResultPattern;
+using SoccerKFUPM.Application.DTOs.TeamDTOs;
+using SoccerKFUPM.Application.Features.TeamsFeature.Commands.AddTeam;
+using SoccerKFUPM.Application.Features.TeamsFeature.Commands.DeleteTeam;
+using SoccerKFUPM.Application.Features.TeamsFeature.Commands.UpdateTeam;
+using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeams;
+using Swashbuckle.AspNetCore.Annotations;
+
+namespace SoccerKFUPM.API.Controllers;
+
+[ApiController]
+[Route("api/teams")]
+public class TeamsController : AppController
+{
+    public TeamsController(IMediator mediator) : base(mediator)
+    {
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpPost]
+    [SwaggerOperation(Summary = "Create a team (AddTeamDTO)", Description = "Creates a new team with the provided details.")]
+    public async Task<ActionResult<ApiResponse<bool>>> CreateTeam([FromBody] AddTeamDTO teamDTO)
+    {
+        var result = await _mediator.Send(new AddTeamCommand(teamDTO));
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpPut]
+    [SwaggerOperation(Summary = "Update a team (UpdateTeamDTO)", Description = "Updates an existing team with the provided details.")]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateTeam([FromBody] UpdateTeamDTO teamDTO)
+    {
+        var result = await _mediator.Send(new UpdateTeamCommand(teamDTO));
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpDelete("{teamId}")]
+    [SwaggerOperation(Summary = "Delete a team", Description = "Deletes the specified team.")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteTeam(int teamId)
+    {
+        var result = await _mediator.Send(new DeleteTeamCommand(teamId));
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpGet]
+    [SwaggerOperation(
+      Summary = "Search teams (TeamDTO)",
+      Description = "Retrieves a paginated, filtered list of teams with optional search by name, manager, and other properties.")]
+    public async Task<ActionResult<ApiResponse<(List<TeamDTO> Teams, int TotalCount)>>> GetTeams(
+      [FromQuery] string? name = null,
+      [FromQuery] string? address = null,
+      [FromQuery] string? website = null,
+      [FromQuery] int? numberOfPlayers = null,
+      [FromQuery] int? managerId = null,
+      [FromQuery] string? managerFirstName = null,
+      [FromQuery] string? managerLastName = null,
+      [FromQuery] int pageNumber = 1,
+      [FromQuery] int pageSize = 10)
+    {
+        var result = await _mediator.Send(new FetchTeamsQuery(
+            name,
+            address,
+            website,
+            numberOfPlayers,
+            managerId,
+            managerFirstName,
+            managerLastName,
+            pageNumber,
+            pageSize
+        ));
+
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+}
