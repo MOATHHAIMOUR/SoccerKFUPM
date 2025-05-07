@@ -4,6 +4,7 @@ using SoccerKFUPM.API.Controllers.Base;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.PlayerDTOs;
 using SoccerKFUPM.Application.Features.PlayerFeature.Commands.AddPlayer;
+using SoccerKFUPM.Application.Features.PlayerFeature.Commands.AssignPlayersIntoTeam;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SoccerKFUPM.API.Controllers
@@ -18,7 +19,7 @@ namespace SoccerKFUPM.API.Controllers
 
 
 
-        [HttpPost("")]
+        [HttpPost()]
         [SwaggerOperation(Summary = "Create a new player (AddPlayerDTO)", Description = "Send a valid AddPlayerDTO to register a new player in the system.")]
         public async Task<ActionResult<ApiResponse<bool>>> CreatePlayer([FromBody] AddPlayerDTO playerDTO)
         {
@@ -26,6 +27,18 @@ namespace SoccerKFUPM.API.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [HttpPost("assign-player-into-Team")]
+        [SwaggerOperation(Summary = "Assign players to a team (AssignPlayerIntoTeamDTO)", Description = "Assign multiple players to a team with their positions and roles")]
+        public async Task<ActionResult<ApiResponse<bool>>> AssignPlayersToTeam([FromBody] AssignPlayerIntoTeamDTO dto)
+        {
+            var result = await _mediator.Send(new AssignPlayerIntoTeamCommand(dto));
+            return StatusCode((int)result.StatusCode, result);
+        }
 
 
 

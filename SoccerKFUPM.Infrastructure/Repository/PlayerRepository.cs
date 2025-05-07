@@ -140,4 +140,45 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
         return (players, totalCount);
     }
 
+
+
+    public async Task<bool> AssignPlayerToTeamAsync(PlayerTeam playerTeam)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        await connection.OpenAsync();
+
+
+
+        using var command = new SqlCommand("SP_AssignPlayerToTeam", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        command.Parameters.AddWithValue("@PlayerId", playerTeam.PlayerId);
+        command.Parameters.AddWithValue("@TeamId", playerTeam.TeamId);
+        command.Parameters.AddWithValue("@JoinedAt", DateTime.Now);
+        command.Parameters.AddWithValue("@PlayerPosition", playerTeam.PlayerPosition);
+        command.Parameters.AddWithValue("@PlayerRole", playerTeam.PlayerRole);
+
+        await command.ExecuteNonQueryAsync();
+        return true;
+
+    }
+
+    public async Task<bool> IsPlayerAlreadyAssignedAsync(int playerId, int tournamentId)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("CheckPlayerAlreadyAssigned", connection);
+        command.CommandType = CommandType.StoredProcedure;
+
+        command.Parameters.AddWithValue("@PlayerId", playerId);
+        command.Parameters.AddWithValue("@TournamentId", tournamentId);
+
+        await connection.OpenAsync();
+
+        var result = await command.ExecuteScalarAsync();
+
+        return result != null && Convert.ToBoolean(result);
+    }
+
 }

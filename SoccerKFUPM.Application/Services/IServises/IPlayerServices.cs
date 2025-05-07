@@ -16,4 +16,8 @@ public interface IPlayerServices
 
 
     public Task<Result<PlayerDTO>> GetPlayerByIdAsync(int playerId);
+
+    public Task<Result<bool>> AssignPlayerToTeamAsync(PlayerTeam playerTeam, int tournamentId);
+    //Task<Result<bool>> AssignCoachToTeamAsync(CoachTeam coachTeam);
+
 }

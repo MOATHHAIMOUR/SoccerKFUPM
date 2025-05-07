@@ -5,17 +5,20 @@ using SoccerKFUPM.Application.DTOs.TournamentDTOs;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.IRepository;
+using System.Net;
 
 namespace SoccerKFUPM.Application.Services;
 
 public class TournamentServices : ITournamentServices
 {
     private readonly ITournamentRepository _tournamentRepository;
+    private readonly ITeamRepository _teamRepository;
     private readonly IMapper _mapper;
 
-    public TournamentServices(ITournamentRepository tournamentRepository, IMapper mapper)
+    public TournamentServices(ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
+        _teamRepository = teamRepository;
         _mapper = mapper;
     }
 
@@ -79,15 +82,40 @@ public class TournamentServices : ITournamentServices
         return Result<bool>.Success(result);
     }
 
-    public async Task<Result<bool>> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds)
+    public async Task<Result<bool>> AssignTeamToTournamentAsync(int tournamentId, int teamId)
     {
-        var tournament = await _tournamentRepository.GetTournamentByIdAsync(tournamentId);
-        if (tournament == null)
+        // 1. Check if the tournament exists
+        var tournament = await _tournamentRepository.TournamentExistsAsync(tournamentId);
+        if (!tournament)
         {
-            return Result<bool>.Failure(Error.RecoredNotFound($"Tournament with id: {tournamentId} is not found"), System.Net.HttpStatusCode.NotFound);
+            return Result<bool>.Failure(
+                Error.RecoredNotFound($"Tournament with id: {tournamentId} is not found"),
+                HttpStatusCode.NotFound);
         }
 
-        var result = await _tournamentRepository.AssignTeamsToTournamentAsync(tournamentId, teamIds);
-        return Result<bool>.Success(result);
+        // 2. Check if the team exists
+        var team = await _teamRepository.TeamExistsAsync(teamId);
+
+        if (!team)
+        {
+            return Result<bool>.Failure(
+                Error.RecoredNotFound($"Team with id: {teamId} is not found"),
+                HttpStatusCode.NotFound);
+        }
+
+        // 3. Check if the team is already assigned to the tournament
+        bool isAlreadyInTournament = await _tournamentRepository.IsTeamInTournamentAsync(teamId, tournamentId);
+        if (isAlreadyInTournament)
+        {
+            return Result<bool>.Failure(
+                Error.ValidationError("This team is already assigned to the specified tournament."),
+                HttpStatusCode.Conflict);
+        }
+
+        // 4. Assign team to tournament
+        await _tournamentRepository.AssignTeamToTournamentAsync(tournamentId, teamId);
+
+        return Result<bool>.Success(true);
     }
+
 }

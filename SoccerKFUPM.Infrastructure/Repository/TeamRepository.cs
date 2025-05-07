@@ -157,5 +157,77 @@ namespace SoccerKFUPM.Infrastructure.Repository
             await command.ExecuteNonQueryAsync();
             return true;
         }
+
+        public async Task<bool> AssignCoachToTeamAsync(CoachTeam coachTeam)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_AssignCoachToTeam", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@CoachId", coachTeam.CoachId);
+            command.Parameters.AddWithValue("@TeamId", coachTeam.TeamId);
+            command.Parameters.AddWithValue("@JoinedAt", coachTeam.JoinedAt);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteNonQueryAsync();
+            return result > 0;
+        }
+
+        public async Task<bool> TeamExistsAsync(int teamId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_CheckTeamExists", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TeamId", teamId);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+        }
+
+        public async Task<bool> IsTeamInTournamentAsync(int teamId, int tournamentId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("CheckTeamInTournament", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TeamId", teamId);
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+        }
+
+
+
+        public async Task<bool> IsCoachAlreadyAssignedAsync(int coachId, int tournamentId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("CheckCoachAlreadyAssigned", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@CoachId", coachId);
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+
+            await connection.OpenAsync();
+
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+        }
+
+
     }
 }

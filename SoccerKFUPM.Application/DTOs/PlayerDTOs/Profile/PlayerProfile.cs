@@ -1,10 +1,14 @@
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.Entities.Views;
+using SoccerKFUPM.Domain.Enums;
 namespace SoccerKFUPM.Application.DTOs.PlayerDTOs.Profile;
 public class PlayerProfile : AutoMapper.Profile
 {
     public PlayerProfile()
     {
+        CreateMap<AssignPlayerIntoTeamDTO, PlayerTeam>()
+            .ForMember(dest => dest.PlayerPosition, opt => opt.MapFrom(src => (PlayerPosition)src.Position))
+            .ForMember(dest => dest.PlayerRole, opt => opt.MapFrom(src => (PlayerRole)src.Role));
 
         CreateMap<PlayerView, PlayerDTO>();
 

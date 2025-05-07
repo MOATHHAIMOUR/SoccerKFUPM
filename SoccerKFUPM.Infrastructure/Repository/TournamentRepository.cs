@@ -131,20 +131,58 @@ namespace SoccerKFUPM.Infrastructure.Repository
             return (tournaments, totalCount);
         }
 
-        public async Task<bool> AssignTeamsToTournamentAsync(int tournamentId, List<int> teamIds)
+        public async Task<bool> AssignTeamToTournamentAsync(int tournamentId, int teamId)
         {
             using var connection = new SqlConnection(_connection.ConnectionString);
-            using var command = new SqlCommand("SP_AssignTeamsToTournament", connection)
+            using var command = new SqlCommand("AssignTeamToTournament", connection)
             {
                 CommandType = CommandType.StoredProcedure
             };
 
             command.Parameters.AddWithValue("@TournamentId", tournamentId);
-            command.Parameters.AddWithValue("@TeamIds", string.Join(",", teamIds)); // Pass team IDs as comma-separated string
+            command.Parameters.AddWithValue("@TeamId", teamId);
 
             await connection.OpenAsync();
-            await command.ExecuteNonQueryAsync();
-            return true;
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
         }
+
+
+        public async Task<bool> TournamentExistsAsync(int tournamentId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_CheckTournamentExists", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+
+        }
+
+        public async Task<bool> IsTeamInTournamentAsync(int teamId, int tournamentId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("CheckTeamInTournament", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TeamId", teamId);
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+
+            await connection.OpenAsync();
+
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+        }
+
     }
 }

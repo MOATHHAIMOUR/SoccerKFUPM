@@ -202,7 +202,7 @@ namespace SoccerKFUPM.Application.Services
 
             var result = roles.Select(r => new RoleDTO
             {
-                Id = r.Id.ToString(),
+                Id = r.Id,
                 Name = r.Name!,
                 NormalizedName = r.NormalizedName!
             }).ToList();

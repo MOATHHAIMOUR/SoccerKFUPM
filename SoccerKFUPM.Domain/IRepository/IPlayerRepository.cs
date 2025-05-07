@@ -8,7 +8,12 @@ public interface IPlayerRepository
     Task<bool> AddPlayerAsync(Player player);
     Task<(List<PlayerView> Players, int TotalCount)> GetAllPlayersAsync(int? playerId,
     string? kfupmId,
-    int pageNumber ,
-    int pageSize );
+    int pageNumber,
+    int pageSize);
     Task<Player?> GetPlayerByIdAsync(int playerId);
+    Task<bool> AssignPlayerToTeamAsync(PlayerTeam playerTeams);
+
+    public Task<bool> IsPlayerAlreadyAssignedAsync(int playerId, int tournamentId);
+
+
 }

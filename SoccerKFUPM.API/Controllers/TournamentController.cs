@@ -97,11 +97,11 @@ namespace SoccerKFUPM.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [HttpPost("assign-teams")]
-        [SwaggerOperation(Summary = "Assign teams to a tournament (AssignTeamsInTournamentDTO)", Description = "Assigns multiple teams to a tournament.")]
-        public async Task<ActionResult<ApiResponse<bool>>> AssignTeams([FromBody] AssignTeamsInTournamentDTO assignTeamsDTO)
+        [HttpPost("assign-team")]
+        [SwaggerOperation(Summary = "Assign team to a tournament (AssignTeamInTournamentDTO)", Description = "Assigns team to a tournament.")]
+        public async Task<ActionResult<ApiResponse<bool>>> AssignTeams([FromBody] AssignTeamInTournamentDTO assignTeamsDTO)
         {
-            var result = await _mediator.Send(new AssignTeamsInTournamentCommand(assignTeamsDTO));
+            var result = await _mediator.Send(new AssignTeamInTournamentCommand(assignTeamsDTO));
             return StatusCode((int)result.StatusCode, result);
         }
     }

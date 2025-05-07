@@ -88,7 +88,7 @@ public class ManagerRepository : IManagerRepository
             DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
             NationalityId = reader.GetInt32(reader.GetOrdinal("NationalityId")),
             TeamName = reader.IsDBNull(reader.GetOrdinal("TeamName")) ? null : reader.GetString(reader.GetOrdinal("TeamName")),
-            ContactInfos = new List<PersonalContactInfoView>()
+            ContactInfos = []
         };
 
         // Read second result set (contact info)
