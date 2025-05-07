@@ -1,7 +1,7 @@
 using FluentValidation;
 using SoccerKFUPM.Application.DTOs.TeamDTOs;
 
-namespace SoccerKFUPM.Application.Features.TeamsFeature.Commands.AssignCoachIntoTeam;
+namespace SoccerKFUPM.Application.Features.CoachFeature.Commands.AssignCoachIntoTeam;
 
 public class AssignCoachIntoTeamValidator : AbstractValidator<AssignCoachIntoTeamDTO>
 {

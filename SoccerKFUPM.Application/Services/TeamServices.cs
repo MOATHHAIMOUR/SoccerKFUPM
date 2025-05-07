@@ -5,7 +5,6 @@ using SoccerKFUPM.Application.DTOs.TeamDTOs;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.IRepository;
-using System.Net;
 
 namespace SoccerKFUPM.Application.Services;
 
@@ -80,37 +79,6 @@ public class TeamServices : ITeamServices
         return Result<bool>.Success(result);
     }
 
-    public async Task<Result<bool>> AssignCoachToTeamAsync(CoachTeam coachTeam, int tournamentId)
-    {
-        // 1. Check tournament exists
-        if (!await _tournamentRepository.TournamentExistsAsync(tournamentId))
-        {
-            return Result<bool>.Failure(Error.RecoredNotFound("Tournament not found"), HttpStatusCode.NotFound);
-        }
-
-        // 2. Check team exists
-        if (!await _teamRepository.TeamExistsAsync(coachTeam.TeamId))
-        {
-            return Result<bool>.Failure(Error.RecoredNotFound("Team not found"), HttpStatusCode.NotFound);
-        }
-
-        // 3. Check team is in tournament
-        if (!await _teamRepository.IsTeamInTournamentAsync(coachTeam.TeamId, tournamentId))
-        {
-            return Result<bool>.Failure(Error.ValidationError("Team is not part of the tournament"), HttpStatusCode.BadRequest);
-        }
-
-        // 4. Check if coach already assigned to another team in this tournament
-        if (await _teamRepository.IsCoachAlreadyAssignedAsync(coachTeam.CoachId, tournamentId))
-        {
-            return Result<bool>.Failure(Error.ConflictError("Coach is already assigned to a team in this tournament"), HttpStatusCode.Conflict);
-        }
-
-        // 5. All validations passed → assign coach
-        await _teamRepository.AssignCoachToTeamAsync(coachTeam);
-
-        return Result<bool>.Success(true);
-    }
 
 
 

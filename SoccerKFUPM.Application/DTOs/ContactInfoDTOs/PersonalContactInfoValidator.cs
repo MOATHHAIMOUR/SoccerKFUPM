@@ -13,7 +13,7 @@ public class PersonalContactInfoValidator : AbstractValidator<PersonalContactInf
         RuleFor(x => x.Value)
             .NotEmpty().WithMessage("Contact value is required")
             .MaximumLength(100).WithMessage("Contact value must not exceed 100 characters")
-            .Must((dto, value) => IsValidContactValue(dto.ContactType, value))
+            .Must((dto, value) => IsValidContactValue((ContactType)dto.ContactType, value))
             .WithMessage("Invalid contact value format for the specified contact type");
     }
 

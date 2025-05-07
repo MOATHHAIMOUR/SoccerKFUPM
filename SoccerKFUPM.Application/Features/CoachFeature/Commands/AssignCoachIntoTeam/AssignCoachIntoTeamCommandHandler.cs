@@ -5,17 +5,17 @@ using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
 
-namespace SoccerKFUPM.Application.Features.TeamsFeature.Commands.AssignCoachIntoTeam;
+namespace SoccerKFUPM.Application.Features.CoachFeature.Commands.AssignCoachIntoTeam;
 
 public class AssignCoachIntoTeamCommandHandler : IRequestHandler<AssignCoachIntoTeamCommand, ApiResponse<bool>>
 {
-    private readonly ITeamServices _teamServices;
+    private readonly ICoachServices _coachServices;
     private readonly IMapper _mapper;
 
-    public AssignCoachIntoTeamCommandHandler(IMapper mapper, ITeamServices teamServices)
+    public AssignCoachIntoTeamCommandHandler(ICoachServices coachServices, IMapper mapper)
     {
+        _coachServices = coachServices;
         _mapper = mapper;
-        _teamServices = teamServices;
     }
 
     public async Task<ApiResponse<bool>> Handle(AssignCoachIntoTeamCommand request, CancellationToken cancellationToken)
@@ -23,7 +23,7 @@ public class AssignCoachIntoTeamCommandHandler : IRequestHandler<AssignCoachInto
 
         // Map and execute
         var coachTeam = _mapper.Map<CoachTeam>(request.AssignCoachIntoTeamDTO);
-        var result = await _teamServices.AssignCoachToTeamAsync(coachTeam, request.AssignCoachIntoTeamDTO.TournamentId);
+        var result = await _coachServices.AssignCoachToTeamAsync(coachTeam, request.AssignCoachIntoTeamDTO.TournamentId);
 
         return ApiResponseHandler.Build(
             data: result.Value,

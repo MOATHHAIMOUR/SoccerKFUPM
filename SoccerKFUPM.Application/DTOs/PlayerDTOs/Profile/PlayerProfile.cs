@@ -1,4 +1,5 @@
 using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.Enums;
 namespace SoccerKFUPM.Application.DTOs.PlayerDTOs.Profile;
@@ -26,7 +27,7 @@ public class PlayerProfile : AutoMapper.Profile
                 .Select(x => new PersonalContactInfo
                 {
                     Value = x.Value,
-                    ContactType = x.ContactType
+                    ContactType = (ContactType)x.ContactType
                 }).ToList()
             }));
 

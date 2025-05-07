@@ -3,6 +3,6 @@ using SoccerKFUPM.Domain.Entities.Enums;
 
 public class PersonalContactInfoDTO
 {
-    public ContactType ContactType { get; set; }
+    public int ContactType { get; set; }
     public required string Value { get; set; }
 }

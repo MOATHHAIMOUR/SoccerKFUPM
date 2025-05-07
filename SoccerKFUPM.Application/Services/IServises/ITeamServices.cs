@@ -21,5 +21,4 @@ public interface ITeamServices
 
     Task<Result<bool>> UpdateTeamAsync(Team team);
     Task<Result<bool>> DeleteTeamAsync(int teamId);
-    public Task<Result<bool>> AssignCoachToTeamAsync(CoachTeam coachTeam, int tournamentId);
 }

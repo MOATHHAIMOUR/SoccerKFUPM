@@ -4,7 +4,6 @@ using SoccerKFUPM.API.Controllers.Base;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.TeamDTOs;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.AddTeam;
-using SoccerKFUPM.Application.Features.TeamsFeature.Commands.AssignCoachIntoTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.DeleteTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.UpdateTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeams;
@@ -91,15 +90,5 @@ public class TeamsController : AppController
     }
 
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [HttpPost("assign-coach")]
-    [SwaggerOperation(Summary = "Assign coach to a team (AssignCoachIntoTeamDTO)", Description = "Assigns a coach to the specified team")]
-    public async Task<ActionResult<ApiResponse<bool>>> AssignCoachToTeam([FromBody] AssignCoachIntoTeamDTO dto)
-    {
-        var result = await _mediator.Send(new AssignCoachIntoTeamCommand(dto));
-        return StatusCode((int)result.StatusCode, result);
-    }
+
 }
