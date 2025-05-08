@@ -181,4 +181,25 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
         return result != null && Convert.ToBoolean(result);
     }
 
+
+    public async Task<bool> IsUserAlreadyPlayerAsync(int userId)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        await connection.OpenAsync();
+
+        var query = @"
+        SELECT 1
+        FROM AspNetUsers U
+        INNER JOIN People P ON U.PersonId = P.PersonId
+        INNER JOIN Players PL ON PL.PersonId = P.PersonId
+        WHERE U.Id = @UserId";
+
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+
+        var result = await command.ExecuteScalarAsync();
+        return result != null;
+    }
+
+
 }

@@ -1,7 +1,6 @@
 using Microsoft.Data.SqlClient;
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.Entities.Enums;
-using SoccerKFUPM.Domain.Enums;
 using SoccerKFUPM.Domain.IRepository;
 using System.Data;
 
@@ -16,34 +15,89 @@ public class RequestRepository : IRequestRepository
         _connection = connection;
     }
 
-    public async Task<bool> CreateRequestAsync(Request request)
+    public async Task<bool> CreateRequestAsync(JoinTeamForFirstTimeRequest joinTeamForFirstTimeRequest)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);
-        using var command = new SqlCommand("SP_CreateRequest", connection)
+        using var command = new SqlCommand("SP_CreateJoinTeamRequest", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
 
-        command.Parameters.AddWithValue("@PlayerId", request.PlayerId);
-        command.Parameters.AddWithValue("@TeamId", request.TeamId);
-        command.Parameters.AddWithValue("@RequestType", (int)request.RequestType);
-        command.Parameters.AddWithValue("@Status", (int)request.Status);
-        command.Parameters.AddWithValue("@CreatedAt", request.CreatedAt);
-        command.Parameters.AddWithValue("@PreferredPosition", (int)request.PreferredPosition);
+        command.Parameters.AddWithValue("@UserId", joinTeamForFirstTimeRequest.UserId);
+        command.Parameters.AddWithValue("@PlayerPosition", (int)joinTeamForFirstTimeRequest.PlayerPosition);
+        command.Parameters.AddWithValue("@PlayerType", (int)joinTeamForFirstTimeRequest.PlayerType);
+        command.Parameters.AddWithValue("@PlayerRole", (int)joinTeamForFirstTimeRequest.PlayerRole);
+        command.Parameters.AddWithValue("@DepratmentId", joinTeamForFirstTimeRequest.DepartmentId);
+        command.Parameters.AddWithValue("@TeamId", joinTeamForFirstTimeRequest.TeamId);
+        command.Parameters.AddWithValue("@Notes", (object?)joinTeamForFirstTimeRequest.Notes ?? DBNull.Value);
 
         var outputId = new SqlParameter("@RequestId", SqlDbType.Int)
         {
             Direction = ParameterDirection.Output
         };
+
         command.Parameters.Add(outputId);
 
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
 
-        var id = (int?)outputId.Value;
-        return id > 0;
+
+        return true;
     }
 
+    public async Task<bool> ProcessRequestJoinTeamForFirstTimeAsync(int requestId, int processorUserId, RequestStatus requestStatus, PlayerStatus playerStatus)
+    {
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_ProcessRequestJoinTeamForFirstTime", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        // Input parameters
+        command.Parameters.AddWithValue("@RequestId", requestId);
+        command.Parameters.AddWithValue("@ProcessorUserId", processorUserId);
+        command.Parameters.AddWithValue("@ReuestStatus", requestStatus); // Keep typo if SP name uses this
+        command.Parameters.AddWithValue("@PlayerStatus", playerStatus);
+
+        // Output parameter
+        var successParam = new SqlParameter("@IsSuccess", SqlDbType.Bit)
+        {
+            Direction = ParameterDirection.Output
+        };
+        command.Parameters.Add(successParam);
+
+        await connection.OpenAsync();
+        await command.ExecuteNonQueryAsync();
+
+        return successParam.Value != DBNull.Value && (bool)successParam.Value;
+    }
+
+    public async Task<bool> HasPendingTeamRequestAsync(int userId)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_HasPendingTeamRequest", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        command.Parameters.AddWithValue("@UserId", userId);
+
+        var outputParam = new SqlParameter("@HasPending", SqlDbType.Bit)
+        {
+            Direction = ParameterDirection.Output
+        };
+        command.Parameters.Add(outputParam);
+
+        await connection.OpenAsync();
+        await command.ExecuteNonQueryAsync();
+
+        return (bool)outputParam.Value;
+    }
+
+
+
+    //------------------
     public async Task<Request?> GetRequestByIdAsync(int requestId)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);
@@ -62,41 +116,14 @@ public class RequestRepository : IRequestRepository
             return new Request
             {
                 RequestId = requestId,
-                PlayerId = reader.GetInt32(reader.GetOrdinal("PlayerId")),
-                TeamId = reader.GetInt32(reader.GetOrdinal("TeamId")),
                 RequestType = (RequestType)reader.GetInt32(reader.GetOrdinal("RequestType")),
                 Status = (RequestStatus)reader.GetInt32(reader.GetOrdinal("Status")),
-                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 ProcessedAt = reader.IsDBNull(reader.GetOrdinal("ProcessedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("ProcessedAt")),
                 ProcessedByUserId = reader.IsDBNull(reader.GetOrdinal("ProcessedByUserId")) ? null : reader.GetString(reader.GetOrdinal("ProcessedByUserId")),
-                PreferredPosition = (PlayerPosition)reader.GetInt32(reader.GetOrdinal("PreferredPosition"))
             };
         }
 
         return null;
-    }
-
-    public async Task<bool> HasPendingTeamRequestAsync(int playerId, int teamId)
-    {
-        using var connection = new SqlConnection(_connection.ConnectionString);
-        using var command = new SqlCommand("SP_HasPendingTeamRequest", connection)
-        {
-            CommandType = CommandType.StoredProcedure
-        };
-
-        command.Parameters.AddWithValue("@PlayerId", playerId);
-        command.Parameters.AddWithValue("@TeamId", teamId);
-
-        var outputParam = new SqlParameter("@HasPending", SqlDbType.Bit)
-        {
-            Direction = ParameterDirection.Output
-        };
-        command.Parameters.Add(outputParam);
-
-        await connection.OpenAsync();
-        await command.ExecuteNonQueryAsync();
-
-        return (bool)outputParam.Value;
     }
 
     public async Task<bool> IsPlayerInTeamAsync(int playerId, int teamId)
@@ -152,14 +179,10 @@ public class RequestRepository : IRequestRepository
             requests.Add(new Request
             {
                 RequestId = reader.GetInt32(reader.GetOrdinal("RequestId")),
-                PlayerId = reader.GetInt32(reader.GetOrdinal("PlayerId")),
-                TeamId = reader.GetInt32(reader.GetOrdinal("TeamId")),
                 RequestType = (RequestType)reader.GetInt32(reader.GetOrdinal("RequestType")),
                 Status = (RequestStatus)reader.GetInt32(reader.GetOrdinal("Status")),
-                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 ProcessedAt = reader.IsDBNull(reader.GetOrdinal("ProcessedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("ProcessedAt")),
                 ProcessedByUserId = reader.IsDBNull(reader.GetOrdinal("ProcessedByUserId")) ? null : reader.GetString(reader.GetOrdinal("ProcessedByUserId")),
-                PreferredPosition = (PlayerPosition)reader.GetInt32(reader.GetOrdinal("PreferredPosition"))
             });
         }
 
@@ -196,14 +219,10 @@ public class RequestRepository : IRequestRepository
             requests.Add(new Request
             {
                 RequestId = reader.GetInt32(reader.GetOrdinal("RequestId")),
-                PlayerId = reader.GetInt32(reader.GetOrdinal("PlayerId")),
-                TeamId = reader.GetInt32(reader.GetOrdinal("TeamId")),
                 RequestType = (RequestType)reader.GetInt32(reader.GetOrdinal("RequestType")),
                 Status = (RequestStatus)reader.GetInt32(reader.GetOrdinal("Status")),
-                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 ProcessedAt = reader.IsDBNull(reader.GetOrdinal("ProcessedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("ProcessedAt")),
                 ProcessedByUserId = reader.IsDBNull(reader.GetOrdinal("ProcessedByUserId")) ? null : reader.GetString(reader.GetOrdinal("ProcessedByUserId")),
-                PreferredPosition = (PlayerPosition)reader.GetInt32(reader.GetOrdinal("PreferredPosition"))
             });
         }
 

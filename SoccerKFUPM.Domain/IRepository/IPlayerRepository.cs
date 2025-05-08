@@ -5,6 +5,7 @@ namespace Namespace.SoccerKFUPM.Domain.IRepository;
 
 public interface IPlayerRepository
 {
+    public Task<bool> IsUserAlreadyPlayerAsync(int userId);
     Task<bool> AddPlayerAsync(Player player);
     Task<(List<PlayerView> Players, int TotalCount)> GetAllPlayersAsync(int? playerId,
     string? kfupmId,

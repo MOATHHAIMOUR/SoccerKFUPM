@@ -1,9 +1,9 @@
+using Namespace.SoccerKFUPM.Domain.IRepository;
 using SoccerKFUPM.Application.Common.Errors;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.Entities.Enums;
-using SoccerKFUPM.Domain.Enums;
 using SoccerKFUPM.Domain.IRepository;
 using System.Net;
 
@@ -12,49 +12,29 @@ namespace SoccerKFUPM.Application.Services;
 public class RequestServices : IRequestServices
 {
     private readonly IRequestRepository _requestRepository;
+    private readonly IPlayerRepository _playerRepository;
 
-    public RequestServices(IRequestRepository requestRepository)
+    public RequestServices(IRequestRepository requestRepository, IPlayerRepository playerRepository)
     {
         _requestRepository = requestRepository;
+        _playerRepository = playerRepository;
     }
 
-    public async Task<Result<bool>> CreateJoinTeamRequestAsync(int playerId, int teamId, PlayerPosition preferredPosition)
+    public async Task<Result<bool>> CreateJoinTeamRequestAsync(JoinTeamForFirstTimeRequest joinTeamForFirstTimeRequest)
     {
-        // Check if player is eligible to join
-        var eligibilityResult = await IsPlayerEligibleForTeamJoinAsync(playerId, teamId);
-        if (!eligibilityResult.IsSuccess)
-        {
-            return eligibilityResult;
-        }
 
-        // Create the request
-        var request = new Request
-        {
-            PlayerId = playerId,
-            TeamId = teamId,
-            RequestType = RequestType.JoinTeam,
-            Status = RequestStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            PreferredPosition = preferredPosition
-        };
+        // Check if the player is already in the team
+        bool isInTeam = await _playerRepository.IsUserAlreadyPlayerAsync(joinTeamForFirstTimeRequest.UserId);
 
-        bool result = await _requestRepository.CreateRequestAsync(request);
-        return Result<bool>.Success(result);
-    }
-
-    public async Task<Result<bool>> IsPlayerEligibleForTeamJoinAsync(int playerId, int teamId)
-    {
-        // Check if player is already in the team
-        bool isInTeam = await _requestRepository.IsPlayerInTeamAsync(playerId, teamId);
         if (isInTeam)
         {
             return Result<bool>.Failure(
-                Error.ValidationError("Player is already a member of this team"),
+                Error.ValidationError("This user is already assigned to a team. This action is only allowed for players requesting to join a team for the first time."),
                 HttpStatusCode.BadRequest);
         }
 
         // Check for pending requests
-        bool hasPendingRequest = await _requestRepository.HasPendingTeamRequestAsync(playerId, teamId);
+        bool hasPendingRequest = await _requestRepository.HasPendingTeamRequestAsync(joinTeamForFirstTimeRequest.UserId);
         if (hasPendingRequest)
         {
             return Result<bool>.Failure(
@@ -62,6 +42,39 @@ public class RequestServices : IRequestServices
                 HttpStatusCode.BadRequest);
         }
 
-        return Result<bool>.Success(true);
+        // Create the request
+        bool result = await _requestRepository.CreateRequestAsync(joinTeamForFirstTimeRequest);
+        return Result<bool>.Success(result);
+
     }
+
+
+    public async Task<Result<bool>> ProcessRequestJoinTeamForFirstTimeAsync(int requestId, int processorUserId, RequestStatus requestStatus, PlayerStatus playerStatus)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(requestId);
+
+        if (request == null)
+        {
+            return Result<bool>.Failure(
+                Error.ValidationError("Request not found"),
+                HttpStatusCode.NotFound);
+        }
+
+        if (request.Status != RequestStatus.Pending)
+        {
+            return Result<bool>.Failure(
+                Error.ValidationError("Request is not pending"),
+                HttpStatusCode.BadRequest);
+        }
+
+
+        bool result = await _requestRepository.ProcessRequestJoinTeamForFirstTimeAsync(requestId, processorUserId, requestStatus, playerStatus);
+        return Result<bool>.Success(result);
+
+    }
+
+
+    //---------------------------
+
+
 }

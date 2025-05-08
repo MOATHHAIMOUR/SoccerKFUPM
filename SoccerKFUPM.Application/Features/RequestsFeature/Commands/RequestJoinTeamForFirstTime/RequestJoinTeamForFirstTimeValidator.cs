@@ -1,19 +1,36 @@
-using FluentValidation;
-using SoccerKFUPM.Application.DTOs.RequestDTOs;
-
 namespace SoccerKFUPM.Application.Features.RequestsFeature.Commands.RequestJoinTeamForFirstTime;
 
-public class RequestJoinTeamForFirstTimeValidator : AbstractValidator<RequestJoinTeamDTO>
+using FluentValidation;
+using SoccerKFUPM.Domain.Entities.Enums;
+using SoccerKFUPM.Domain.Enums;
+
+public class RequestJoinTeamForFirstTimeValidator : AbstractValidator<RequestJoinTeamForFirstTimeCommand>
 {
     public RequestJoinTeamForFirstTimeValidator()
     {
-        RuleFor(x => x.PlayerId)
-            .GreaterThan(0).WithMessage("Player ID must be greater than 0");
+        RuleFor(x => x.RequestJoinTeamDTO.UserId)
+            .GreaterThan(0).WithMessage("User ID must be provided.");
 
-        RuleFor(x => x.TeamId)
-            .GreaterThan(0).WithMessage("Team ID must be greater than 0");
+        RuleFor(x => x.RequestJoinTeamDTO.TeamId)
+            .GreaterThan(0).WithMessage("Team ID must be provided.");
 
-        RuleFor(x => x.PreferredPosition)
-            .IsInEnum().WithMessage("Invalid player position");
+        RuleFor(x => x.RequestJoinTeamDTO.PlayerPosition)
+            .Must(value => Enum.IsDefined(typeof(PlayerPosition), value))
+            .WithMessage("Invalid player position.");
+
+        RuleFor(x => x.RequestJoinTeamDTO.PlayerRole)
+            .Must(value => Enum.IsDefined(typeof(PlayerRole), value))
+            .WithMessage("Invalid player role.");
+
+        RuleFor(x => x.RequestJoinTeamDTO.PlayerType)
+            .Must(value => Enum.IsDefined(typeof(PlayerType), value))
+            .WithMessage("Invalid player type.");
+
+        RuleFor(x => x.RequestJoinTeamDTO.DepartmentId)
+            .GreaterThan(0).WithMessage("Department ID must be provided.");
+
+        RuleFor(x => x.RequestJoinTeamDTO.Notes)
+            .MaximumLength(500)
+            .WithMessage("Notes cannot exceed 500 characters.");
     }
 }

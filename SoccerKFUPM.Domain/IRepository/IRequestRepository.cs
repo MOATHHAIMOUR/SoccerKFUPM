@@ -1,13 +1,17 @@
 using SoccerKFUPM.Domain.Entities;
-using SoccerKFUPM.Domain.Enums;
+using SoccerKFUPM.Domain.Entities.Enums;
 
 namespace SoccerKFUPM.Domain.IRepository;
 
 public interface IRequestRepository
 {
-    Task<bool> CreateRequestAsync(Request request);
+
+    public Task<bool> ProcessRequestJoinTeamForFirstTimeAsync(int requestId, int processorUserId, RequestStatus requestStatus, PlayerStatus playerStatus);
+    public Task<bool> CreateRequestAsync(JoinTeamForFirstTimeRequest joinTeamForFirstTimeRequest);
+    public Task<bool> HasPendingTeamRequestAsync(int userId);
+
+    ///----------
     Task<Request?> GetRequestByIdAsync(int requestId);
-    Task<bool> HasPendingTeamRequestAsync(int playerId, int teamId);
     Task<bool> IsPlayerInTeamAsync(int playerId, int teamId);
     Task<(List<Request> Requests, int TotalCount)> GetRequestsByPlayerAsync(
         int playerId,
