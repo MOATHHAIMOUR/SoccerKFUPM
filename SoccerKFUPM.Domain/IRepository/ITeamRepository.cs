@@ -6,6 +6,8 @@ namespace SoccerKFUPM.Domain.IRepository;
 public interface ITeamRepository
 {
 
+    public Task<bool> IsTeamInTournamentAsync(int TournamentTeamId);
+
     public Task<bool> TeamExistsAsync(int teamId);
     Task<bool> AddTeamAsync(Team team);
     Task<bool> DeleteTeamAsync(int teamId);

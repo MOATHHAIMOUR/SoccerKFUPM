@@ -192,6 +192,22 @@ namespace SoccerKFUPM.Infrastructure.Repository
             return Convert.ToInt32(result) == 1;
         }
 
+        public async Task<bool> IsTeamInTournamentAsync(int TournamentTeamId)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_CheckTeamInTournamentByTournamentTeamId", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TournamentTeamId", TournamentTeamId);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) == 1;
+        }
+
 
     }
 }

@@ -84,6 +84,7 @@ namespace SoccerKFUPM.Infrastructure.Repository
             services.AddScoped<IRequestServices, RequestServices>();
             services.AddScoped<IFieldServices, FieldServices>();
             services.AddScoped<ICoachServices, CoachServices>();
+            services.AddScoped<IMatchServices, MatchServices>();
 
             return services;
         }
