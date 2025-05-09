@@ -208,6 +208,46 @@ namespace SoccerKFUPM.Infrastructure.Repository
             return Convert.ToInt32(result) == 1;
         }
 
+        public async Task<(List<TeamTournamentView> teams, int totalCount)> GetTeamsByTournamentIdAsync(
+            int tournamentId,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            using var connection = new SqlConnection(_connection.ConnectionString);
+            using var command = new SqlCommand("SP_GetTeamsByTournament", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@TournamentId", tournamentId);
+            command.Parameters.AddWithValue("@PageNumber", pageNumber);
+            command.Parameters.AddWithValue("@PageSize", pageSize);
+
+
+
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+
+            var teams = new List<TeamTournamentView>();
+            while (await reader.ReadAsync())
+            {
+                teams.Add(new TeamTournamentView
+                {
+                    TournamentTeamId = reader.GetInt32(reader.GetOrdinal("TournamentTeamId")),
+                    TeamId = reader.GetInt32(reader.GetOrdinal("TeamId")),
+                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                    Address = reader.GetString(reader.GetOrdinal("Address")),
+                    Website = reader.GetString(reader.GetOrdinal("Website")),
+                    NumberOfPlayers = reader.GetInt32(reader.GetOrdinal("NumberOfPlayers")),
+                    ManagerId = reader.GetInt32(reader.GetOrdinal("ManagerId")),
+                    ManagerFirstName = reader.GetString(reader.GetOrdinal("ManagerFirstName")),
+                    ManagerLastName = reader.GetString(reader.GetOrdinal("ManagerLastName"))
+                });
+            }
+
+            return (teams, teams.Count);
+        }
+
 
     }
 }

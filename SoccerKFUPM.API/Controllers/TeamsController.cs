@@ -7,6 +7,7 @@ using SoccerKFUPM.Application.Features.TeamsFeature.Commands.AddTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.DeleteTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.UpdateTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeams;
+using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeamsByTournament;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SoccerKFUPM.API.Controllers;
@@ -89,6 +90,26 @@ public class TeamsController : AppController
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpGet("by-tournamentId/{tournamentId}")]
+    [SwaggerOperation(
+        Summary = "Get teams by tournament",
+        Description = "Retrieves a paginated list of teams participating in a specific tournament")]
+    public async Task<ActionResult<ApiResponse<List<TeamTournamentViewDTO>>>> GetTeamsByTournament(
+        int tournamentId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var query = new FetchTeamsByTournamentQuery(
+            TournamentId: tournamentId,
+            PageNumber: pageNumber,
+            PageSize: pageSize
+        );
 
-
+        var result = await _mediator.Send(query);
+        return StatusCode((int)result.StatusCode, result);
+    }
 }

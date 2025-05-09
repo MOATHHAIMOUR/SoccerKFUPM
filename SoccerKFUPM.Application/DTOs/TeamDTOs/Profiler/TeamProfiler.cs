@@ -14,6 +14,7 @@ namespace SoccerKFUPM.Application.DTOs.TeamDTOs.Profiler
 
             CreateMap<TeamView, TeamDTO>();
 
+            CreateMap<TeamTournamentView, TeamTournamentViewDTO>();
 
         }
     }

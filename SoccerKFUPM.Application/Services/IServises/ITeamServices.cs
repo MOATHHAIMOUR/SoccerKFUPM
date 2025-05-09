@@ -21,4 +21,9 @@ public interface ITeamServices
 
     Task<Result<bool>> UpdateTeamAsync(Team team);
     Task<Result<bool>> DeleteTeamAsync(int teamId);
+    
+    Task<Result<(List<TeamTournamentViewDTO> teams, int totalCount)>> GetTeamsByTournamentAsync(
+        int tournamentId,
+        int pageNumber = 1,
+        int pageSize = 10);
 }

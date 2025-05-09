@@ -79,7 +79,23 @@ public class TeamServices : ITeamServices
         return Result<bool>.Success(result);
     }
 
+    public async Task<Result<(List<TeamTournamentViewDTO> teams, int totalCount)>> GetTeamsByTournamentAsync(
+        int tournamentId,
+        int pageNumber = 1,
+        int pageSize = 10)
+    {
+        var tournamentExists = await _tournamentRepository.TournamentExistsAsync(tournamentId);
+        if (!tournamentExists)
+        {
+            return Result<(List<TeamTournamentViewDTO> teams, int totalCount)>.Failure(
+                Error.RecoredNotFound($"Tournament with id: {tournamentId} is not found"),
+                System.Net.HttpStatusCode.NotFound);
+        }
 
+        var (teams, totalCount) = await _teamRepository.GetTeamsByTournamentIdAsync(tournamentId, pageNumber, pageSize);
 
+        var teamDTOs = _mapper.Map<List<TeamTournamentViewDTO>>(teams);
 
+        return Result<(List<TeamTournamentViewDTO> teams, int totalCount)>.Success((teamDTOs, totalCount));
+    }
 }
