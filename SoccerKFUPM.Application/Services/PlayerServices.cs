@@ -1,6 +1,8 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Namespace.SoccerKFUPM.Domain.IRepository;
 using SoccerKFUPM.Application.Common.Errors;
+using SoccerKFUPM.Application.Common.Helpers;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.PlayerDTOs;
 using SoccerKFUPM.Application.Services.IServises;
@@ -17,20 +19,29 @@ public class PlayerServices : IPlayerServices
     private readonly ITournamentRepository _tournamentRepository;
     private readonly ITeamRepository _teamRepository;
     private readonly IMapper _mapper;
+    private UserManager<User> _userManager;
 
-    public PlayerServices(IPlayerRepository playerRepository, ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IMapper mapper)
+    public PlayerServices(IPlayerRepository playerRepository, ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IMapper mapper, UserManager<User> userManager)
     {
         _playerRepository = playerRepository;
         _tournamentRepository = tournamentRepository;
         _teamRepository = teamRepository;
         _mapper = mapper;
+        _userManager = userManager;
     }
 
-    public async Task<Result<bool>> AddPlayerAsync(Player player)
+    public async Task<Result<bool>> AddPlayerAsync(Player player, string username, string IntialPassword)
     {
-        bool result = await _playerRepository.AddPlayerAsync(player);
+        int? personId = await _playerRepository.AddPlayerAsync(player);
 
-        return Result<bool>.Success(result);
+        if (personId == null)
+            return Result<bool>.Failure(Error.ValidationError("Failed to add player."), HttpStatusCode.BadRequest);
+
+        var IsPlayerCreated = await AuthHelpers.CreateUserWithRoleAsync(_userManager, personId.Value, username, IntialPassword, "Player");
+
+        return IsPlayerCreated.IsSuccess
+            ? Result<bool>.Success(true)
+            : Result<bool>.Failure(Error.ValidationError("Failed to create user for Player."), HttpStatusCode.BadRequest);
     }
 
     public async Task<Result<(List<PlayerDTO> playerDTOs, int totalCount)>> GetAllPlayersAsync(

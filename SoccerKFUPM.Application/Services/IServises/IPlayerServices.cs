@@ -6,7 +6,7 @@ using SoccerKFUPM.Domain.Entities;
 
 public interface IPlayerServices
 {
-    public Task<Result<bool>> AddPlayerAsync(Player player);
+    public Task<Result<bool>> AddPlayerAsync(Player player, string username, string IntialPassword);
 
 
     public Task<Result<(List<PlayerDTO> playerDTOs, int totalCount)>> GetAllPlayersAsync(int? playerId,

@@ -19,4 +19,6 @@ public interface IMatchServices
 
     Task<Result<bool>> ScheduleMatchAsync(MatchSchedule match);
 
+    Task<Result<bool>> AddMatchResultAsync(MatchRecord matchResult);
+
 }

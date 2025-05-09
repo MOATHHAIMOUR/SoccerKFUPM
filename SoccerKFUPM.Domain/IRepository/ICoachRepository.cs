@@ -5,7 +5,7 @@ namespace SoccerKFUPM.Domain.IRepository;
 
 public interface ICoachRepository
 {
-    Task<bool> AddCoachAsync(Coache coach);
+    Task<int?> AddCoachAsync(Coache coach);
 
     public Task<bool> AssignCoachToTeamAsync(CoachTeam coachTeam);
     Task<(List<CoachView> coaches, int totalCount)> GetCoachesAsync(

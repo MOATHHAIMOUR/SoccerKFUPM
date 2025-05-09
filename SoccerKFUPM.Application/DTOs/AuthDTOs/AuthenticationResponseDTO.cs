@@ -7,5 +7,7 @@ public class AuthenticationResponseDTO
     public string JWTToken { get; set; } = null!;
     public string RefreshToken { get; set; } = null!;
 
+    public bool IsUserNeedToResetPassword { get; set; } = false;
+
     public List<string> Roles = [];
 }

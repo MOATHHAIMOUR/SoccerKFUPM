@@ -6,6 +6,7 @@ public enum UserRole
     Coach = 2,
     Player = 3,
     Staff = 4,
-    Gust = 5
+    Gust = 5,
+    Manager = 6
 
 }

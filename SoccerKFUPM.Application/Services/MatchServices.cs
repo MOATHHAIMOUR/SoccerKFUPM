@@ -1,8 +1,10 @@
 using AutoMapper;
+using Namespace.SoccerKFUPM.Domain.IRepository;
 using SoccerKFUPM.Application.Common.Errors;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.IRepository;
 using System.Net;
@@ -16,19 +18,16 @@ public class MatchServices : IMatchServices
     private readonly ITeamRepository _teamRepository;
     private readonly IFieldRepository _fieldRepository;
     private readonly IMapper _mapper;
+    private readonly IPlayerRepository _playerRepository;
 
-    public MatchServices(
-        IMatchRepository matchRepository,
-        ITournamentRepository tournamentRepository,
-        ITeamRepository teamRepository,
-        IFieldRepository fieldRepository,
-        IMapper mapper)
+    public MatchServices(IMatchRepository matchRepository, ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IFieldRepository fieldRepository, IMapper mapper, IPlayerRepository playerRepository)
     {
         _matchRepository = matchRepository;
         _tournamentRepository = tournamentRepository;
         _teamRepository = teamRepository;
         _fieldRepository = fieldRepository;
         _mapper = mapper;
+        _playerRepository = playerRepository;
     }
 
     public async Task<Result<bool>> ScheduleMatchAsync(MatchSchedule match)
@@ -82,4 +81,17 @@ public class MatchServices : IMatchServices
         return Result<(List<MatchView> matches, int totalCount)>.Success((matches, totalCount));
     }
 
+    public async Task<Result<bool>> AddMatchResultAsync(MatchRecord MatchRecord, MatchStatus UpdatedMatchStatus)
+    {
+
+        // 3. Record match result
+        await _matchRepository.InsertMatchRecordAsync(MatchRecord);
+
+        return Result<bool>.Success(true);
+    }
+
+    public Task<Result<bool>> AddMatchResultAsync(MatchRecord matchResult)
+    {
+        throw new NotImplementedException();
+    }
 }

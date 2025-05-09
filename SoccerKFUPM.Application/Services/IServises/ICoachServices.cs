@@ -9,7 +9,7 @@ public interface ICoachServices
 
     public Task<Result<bool>> AssignCoachToTeamAsync(CoachTeam coachTeam, int tournamentId);
 
-    public Task<Result<bool>> AddCoachAsync(Coache coach);
+    public Task<Result<bool>> AddCoachAsync(Coache coach, string username, string initialPassword);
     public Task<Result<(List<CoachViewDTO> coaches, int totalCount)>> GetCoachesAsync(
     string? kfupmId = null,
     string? firstName = null,

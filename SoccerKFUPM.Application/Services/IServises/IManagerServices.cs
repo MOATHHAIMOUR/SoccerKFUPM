@@ -7,7 +7,7 @@ namespace SoccerKFUPM.Application.Services.IServises;
 
 public interface IManagerServices
 {
-    Task<Result<bool>> AddManagerAsync(Manager manager);
+    public Task<Result<bool>> AddManagerAsync(Manager manager, string username, string IntialPassword);
     Task<Result<ManagerDTO>> GetManagerByIdAsync(int managerId);
     Task<Result<(List<ManagerView> Managers, int TotalCount)>> SearchManagersAsync(
        string? kfupmId,

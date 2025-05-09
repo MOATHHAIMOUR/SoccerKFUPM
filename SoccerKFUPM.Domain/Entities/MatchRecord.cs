@@ -10,4 +10,7 @@ public class MatchRecord
     public double AcquisitionRate { get; set; }
     public bool IsWin { get; set; }
     public int? BestPlayer { get; set; } // Nullable
+    public List<ShotOnGoal> ShotsOnGoal { get; set; }
+    public List<CardViolation> CardViolations { get; set; }
+    public List<MatchSubstitution> MatchSubstitutions { get; set; }
 }

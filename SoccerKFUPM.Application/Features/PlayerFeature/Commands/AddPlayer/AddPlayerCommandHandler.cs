@@ -1,13 +1,13 @@
-namespace  SoccerKFUPM.Application.Features.PlayerFeature.Commands.AddPlayer;
+namespace SoccerKFUPM.Application.Features.PlayerFeature.Commands.AddPlayer;
 
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
 using SoccerKFUPM.Application.Common.ApiResponse;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class AddPlayerCommandHandler : IRequestHandler<AddPlayerCommand, ApiResponse<bool>>
 {
@@ -19,13 +19,13 @@ public class AddPlayerCommandHandler : IRequestHandler<AddPlayerCommand, ApiResp
         _playerServices = playerServices;
     }
 
-      public async Task<ApiResponse<bool>> Handle(AddPlayerCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<bool>> Handle(AddPlayerCommand request, CancellationToken cancellationToken)
     {
         // Map the command to the Player entity using AutoMapper
         Player player = _mapper.Map<Player>(request.AddPlayerDTO);
 
         // Call the service to add the player
-        var result = await _playerServices.AddPlayerAsync(player);
+        var result = await _playerServices.AddPlayerAsync(player, request.AddPlayerDTO.UserName, request.AddPlayerDTO.IntialPassword);
 
         return ApiResponseHandler.Build(
             data: result.Value,
@@ -34,7 +34,7 @@ public class AddPlayerCommandHandler : IRequestHandler<AddPlayerCommand, ApiResp
             message: result.IsSuccess ? "Player created successfully" : result.Error.Message,
             errors: result.IsSuccess ? null : [result.Error.Message]
         );
-        
+
     }
 
 }

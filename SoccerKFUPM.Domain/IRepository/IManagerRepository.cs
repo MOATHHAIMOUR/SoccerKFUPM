@@ -5,7 +5,7 @@ namespace SoccerKFUPM.Domain.IRepository;
 
 public interface IManagerRepository
 {
-    Task<bool> AddManagerAsync(Manager manager);
+    Task<int?> AddManagerAsync(Manager manager);
     Task<ManagerView?> GetManagerByIdAsync(int managerId);
     public Task<(List<ManagerView> managers, int totalCount)> SearchManagersAsync(
             string? kfupmId = null,

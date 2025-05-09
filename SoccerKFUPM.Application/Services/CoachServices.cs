@@ -1,5 +1,7 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using SoccerKFUPM.Application.Common.Errors;
+using SoccerKFUPM.Application.Common.Helpers;
 using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.CoachDTOs;
 using SoccerKFUPM.Application.Services.IServises;
@@ -13,22 +15,32 @@ public class CoachServices : ICoachServices
 {
     private readonly ICoachRepository _coachRepository;
     private readonly IMapper _mapper;
+    private UserManager<User> _userManager;
     private readonly ITournamentRepository _tournamentRepository;
     private readonly ITeamRepository _teamRepository;
 
-    public CoachServices(ICoachRepository coachRepository, IMapper mapper, ITournamentRepository tournamentRepository, ITeamRepository teamRepository)
+    public CoachServices(ICoachRepository coachRepository, IMapper mapper, UserManager<User> userManager, ITournamentRepository tournamentRepository, ITeamRepository teamRepository)
     {
         _coachRepository = coachRepository;
         _mapper = mapper;
+        _userManager = userManager;
         _tournamentRepository = tournamentRepository;
         _teamRepository = teamRepository;
     }
 
-    public async Task<Result<bool>> AddCoachAsync(Coache coach)
+    public async Task<Result<bool>> AddCoachAsync(Coache coach, string username, string initialPassword)
     {
+        // 1. Add the coach record to your database
+        int? personId = await _coachRepository.AddCoachAsync(coach);
 
-        var result = await _coachRepository.AddCoachAsync(coach);
-        return Result<bool>.Success(result);
+        if (personId == null)
+            return Result<bool>.Failure(Error.ValidationError("Failed to add coach."), HttpStatusCode.BadRequest);
+
+        var IsUserCreated = await AuthHelpers.CreateUserWithRoleAsync(_userManager, personId.Value, username, initialPassword, "Coach");
+
+        return IsUserCreated.IsSuccess
+            ? Result<bool>.Success(true)
+            : Result<bool>.Failure(Error.ValidationError("Failed to create user for coach."), HttpStatusCode.BadRequest);
 
     }
 
@@ -90,6 +102,8 @@ public class CoachServices : ICoachServices
 
         return Result<bool>.Success(true);
     }
+
+
 
 
 }

@@ -1,6 +1,10 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using SoccerKFUPM.Application.Common.Errors;
+using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -36,6 +40,35 @@ namespace SoccerKFUPM.Application.Common.Helpers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+
+        public static async Task<Result<bool>> CreateUserWithRoleAsync(UserManager<User> _userManager, int personId, string username, string initialPassword, string role)
+        {
+            var user = new User
+            {
+                UserName = username,
+                Email = username,
+                MustChangePassword = true,
+                PersonId = personId
+            };
+
+            var userResult = await _userManager.CreateAsync(user, initialPassword);
+            if (!userResult.Succeeded)
+            {
+                var errors = string.Join("; ", userResult.Errors.Select(e => e.Description));
+                return Result<bool>.Failure(Error.ValidationError($"Failed to create user: {errors}"), HttpStatusCode.BadRequest);
+            }
+
+            var roleAssignResult = await _userManager.AddToRoleAsync(user, role);
+            if (!roleAssignResult.Succeeded)
+            {
+                var errors = string.Join("; ", roleAssignResult.Errors.Select(e => e.Description));
+                return Result<bool>.Failure(Error.ValidationError($"User created but role assignment failed: {errors}"), HttpStatusCode.BadRequest);
+            }
+
+            return Result<bool>.Success(true);
+        }
+
 
 
         public static string GetRefreshToken()

@@ -21,7 +21,7 @@ public class AddManagerCommandHandler : IRequestHandler<AddManagerCommand, ApiRe
     public async Task<ApiResponse<bool>> Handle(AddManagerCommand request, CancellationToken cancellationToken)
     {
         var manager = _mapper.Map<Manager>(request.AddManagerDTO);
-        var result = await _managerServices.AddManagerAsync(manager);
+        var result = await _managerServices.AddManagerAsync(manager, request.AddManagerDTO.UserName, request.AddManagerDTO.IntialPassword);
         return ApiResponseHandler.Build(result.Value, result.StatusCode, result.IsSuccess, null, [result.Error.Message]);
     }
 }

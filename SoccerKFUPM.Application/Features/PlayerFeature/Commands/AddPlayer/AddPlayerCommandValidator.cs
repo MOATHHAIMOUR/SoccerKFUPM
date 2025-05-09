@@ -10,6 +10,15 @@ public class AddPlayerCommandValidator : AbstractValidator<AddPlayerCommand>
             .NotEmpty().WithMessage("KFUPM ID is required.")
             .Matches(@"^\d{9}$").WithMessage("KFUPM ID must be exactly 9 digits.");
 
+        RuleFor(x => x.AddPlayerDTO.UserName)
+.NotEmpty().WithMessage("Username is required.")
+.EmailAddress().WithMessage("Username must be a valid email address.");
+
+        RuleFor(x => x.AddPlayerDTO.IntialPassword)
+            .NotEmpty().WithMessage("IntialPassword is required.")
+            .MinimumLength(6).WithMessage("IntialPassword must be at least 6 characters long.");
+
+
         RuleFor(x => x.AddPlayerDTO.FirstName)
             .NotEmpty().WithMessage("First name is required.")
             .MaximumLength(50);

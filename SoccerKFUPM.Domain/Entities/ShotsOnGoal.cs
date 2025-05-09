@@ -1,14 +1,14 @@
-namespace SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 
-using SoccerKFUPM.Domain.Enums;
+namespace SoccerKFUPM.Domain.Entities;
 
 public class ShotOnGoal
 {
     public int ShotOnGoalId { get; set; }
-    public int MatchRecordId { get; set; }
+    public int MatchScheduleId { get; set; }
     public TimeSpan Time { get; set; }
-    public int PlayerId { get; set; }
-    public int GoalkeeperId { get; set; }
-    public ShotType ShotType { get; set; } 
+    public int PlayerTeamId { get; set; }
+    public int GoalkeeperTeamId { get; set; }
+    public ShotType ShotType { get; set; }
     public bool IsGoal { get; set; }
 }

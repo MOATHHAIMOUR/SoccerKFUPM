@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SoccerKFUPM.API.Controllers.Base;
 using SoccerKFUPM.Application.Common.ResultPattern;
+using SoccerKFUPM.Application.DTOs.MatchDTOs;
+using SoccerKFUPM.Application.Features.MatchFeature.Commands.AddMatchResult;
 using SoccerKFUPM.Application.Features.MatchFeature.Commands.ScheduleMatch;
 using SoccerKFUPM.Application.Features.MatchFeature.Queries.GetAllScheduledMatches;
 using SoccerKFUPM.Domain.Entities.Views;
@@ -61,4 +63,19 @@ public class MatchController : AppController
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpPost("results")]
+    [SwaggerOperation(
+        Summary = "Record match results (AddMatchResultDTO)",
+        Description = "Records the results of a completed match including goals, acquisition rates, and shots on goal")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<bool>>> AddMatchResult(
+
+        [FromBody] AddMatchRecordDTO AddMatchResultDTO)
+    {
+
+        var result = await _mediator.Send(new AddMatchResultCommand(AddMatchResultDTO));
+        return StatusCode((int)result.StatusCode, result);
+    }
 }

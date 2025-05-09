@@ -1,12 +1,9 @@
-namespace SoccerKFUPM.Domain.Enums;
+namespace SoccerKFUPM.Domain.Entities.Enums;
 
-/// <summary>
-/// Types of shots in the game
-/// </summary>
 public enum ShotType
 {
-    /// <summary>Penalty shot (send value 1)</summary>
-    Penalty=1,
-    /// <summary>Foul shot (send value 2)</summary>
-    Foul=2,
+    Normal = 1,
+    Penalty = 2,
+    FreeKick = 3,
+    Corner = 4
 }

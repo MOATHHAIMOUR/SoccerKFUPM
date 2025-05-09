@@ -15,7 +15,7 @@ public class CoachRepository : ICoachRepository
         _connection = connection;
     }
 
-    public async Task<bool> AddCoachAsync(Coache coach)
+    public async Task<int?> AddCoachAsync(Coache coach)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);
         using var command = new SqlCommand("SP_AddCoach", connection)
@@ -46,17 +46,17 @@ public class CoachRepository : ICoachRepository
         contactInfoParam.SqlDbType = SqlDbType.Structured;
         contactInfoParam.TypeName = "dbo.ContactInfoType";
 
-        // ✅ Add output parameter
-        var successParam = new SqlParameter("@IsSuccessful", SqlDbType.Bit)
+        // ✅ Output parameter for PersonId
+        var personIdParam = new SqlParameter("@PersonId", SqlDbType.Int)
         {
             Direction = ParameterDirection.Output
         };
-        command.Parameters.Add(successParam);
+        command.Parameters.Add(personIdParam);
 
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
 
-        return successParam.Value != DBNull.Value && (bool)successParam.Value;
+        return personIdParam.Value == DBNull.Value ? null : (int?)personIdParam.Value;
     }
 
     public async Task<(List<CoachView> coaches, int totalCount)> GetCoachesAsync(

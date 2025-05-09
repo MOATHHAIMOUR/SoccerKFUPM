@@ -1,0 +1,222 @@
+using FluentValidation;
+using Namespace.SoccerKFUPM.Domain.IRepository;
+using SoccerKFUPM.Application.DTOs.MatchDTOs;
+using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
+using SoccerKFUPM.Domain.IRepository;
+
+namespace SoccerKFUPM.Application.Features.MatchFeature.Commands.AddMatchResult;
+
+public class AddMatchResultCommandValidator : AbstractValidator<AddMatchResultCommand>
+{
+    private readonly IMatchRepository _matchRepo;
+    private readonly IPlayerRepository _playerRepository;
+
+    private bool TryGetMatch(IValidationContext validationContext, out MatchSchedule match)
+    {
+        match = null;
+
+        if (!validationContext.RootContextData.TryGetValue("match", out var matchObj) || matchObj is not MatchSchedule validMatch)
+            return false;
+
+        match = validMatch;
+        return true;
+    }
+
+
+    public AddMatchResultCommandValidator(IMatchRepository matchRepo, IPlayerRepository playerRepository)
+    {
+        _matchRepo = matchRepo;
+        _playerRepository = playerRepository;
+
+        // Basic validation for the command
+        RuleFor(x => x.Dto.MatchScheduleId)
+            .GreaterThan(0)
+            .WithMessage("MatchScheduleId must be greater than 0");
+
+        // Team A validation
+        RuleFor(x => x.Dto.TeamARecord)
+            .NotNull()
+            .WithMessage("Team A result is required")
+            .SetValidator(new TeamMatchResultDTOValidator());
+
+        // Team B validation
+        RuleFor(x => x.Dto.TeamBRecord)
+            .NotNull()
+            .WithMessage("Team B result is required")
+            .SetValidator(new TeamMatchResultDTOValidator());
+
+        // Validate shots on goal for Team A
+        RuleForEach(x => x.Dto.TeamARecord.ShotsOnGoal)
+            .SetValidator(new ShotOnGoalDTOValidator());
+
+        // Validate shots on goal for Team B
+        RuleForEach(x => x.Dto.TeamBRecord.ShotsOnGoal)
+            .SetValidator(new ShotOnGoalDTOValidator());
+
+        // Step 1: Fetch match once and cache it
+        RuleFor(x => x)
+            .MustAsync(async (command, cancellation) =>
+            {
+                var match = await matchRepo.GetMatchScheduleByIdAsync(command.Dto.MatchScheduleId);
+                if (match == null) return false;
+
+                (command as IValidationContext)?.RootContextData.TryAdd("match", match);
+                return true;
+            })
+            .WithMessage(x => $"Match with id: {x.Dto.MatchScheduleId} is not found");
+
+        // Step 2: Ensure match is scheduled
+        RuleFor(x => x)
+            .Must((command, _, context) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return true;
+
+                return match.MatchStatus == MatchStatus.Scheduled;
+            })
+            .WithMessage("Match is already recorded.");
+
+        // Step 3: Ensure teams are not the same
+        RuleFor(x => x)
+            .Must(x => x.Dto.TeamARecord.TournamentTeamId != x.Dto.TeamBRecord.TournamentTeamId)
+            .WithMessage("Team A and Team B cannot be the same team.");
+
+        // Step 4: Team A belongs to the match
+        RuleFor(x => x.Dto.TeamARecord.TournamentTeamId)
+            .Must((command, TournamentTeamId, context) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return true;
+
+                return TournamentTeamId == match.TournamentTeamIdA || TournamentTeamId == match.TournamentTeamIdB;
+            })
+            .WithMessage("Team A is not one of the scheduled teams.");
+
+        // Step 5: Team B belongs to the match
+        RuleFor(x => x.Dto.TeamBRecord.TournamentTeamId)
+            .Must((command, teamId, context) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return true;
+
+                return teamId == match.TournamentTeamIdA || teamId == match.TournamentTeamIdB;
+            })
+            .WithMessage("Team B is not one of the scheduled teams.");
+
+        // Step 6: Goals for/against match
+        RuleFor(x => x)
+            .Must(x => x.Dto.TeamARecord.GoalsFor == x.Dto.TeamBRecord.GoalAgainst)
+            .WithMessage("Team A's GoalsFor must match Team B's GoalAgainst");
+
+        RuleFor(x => x)
+            .Must(x => x.Dto.TeamBRecord.GoalsFor == x.Dto.TeamARecord.GoalAgainst)
+            .WithMessage("Team B's GoalsFor must match Team A's GoalAgainst");
+
+        // Step 7: Validate best players if match is completed
+        RuleFor(x => x)
+            .CustomAsync(async (command, context, cancellation) =>
+            {
+                if (command.Dto.UpdatedMatchStatus != MatchStatus.Completed)
+                    return;
+
+                if (command.Dto.TeamARecord.BestPlayer.HasValue && command.Dto.TeamBRecord.BestPlayer.HasValue)
+                {
+                    context.AddFailure("BestPlayer", "Only one team can have a BestPlayer in a match.");
+                    return;
+                }
+
+
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return;
+
+
+                // Team A BestPlayer
+                if (command.Dto.TeamARecord.BestPlayer.HasValue)
+                {
+                    var isValid = await _playerRepository.IsPlayerAlreadyAssignedAsync(
+                        command.Dto.TeamARecord.BestPlayer.Value,
+                        match.TournamentId);
+
+                    if (!isValid)
+                    {
+                        context.AddFailure("TeamARecord.BestPlayer", $"Player {command.Dto.TeamARecord.BestPlayer.Value} is not in the tournament");
+                    }
+                    return;
+                }
+
+                // Team B BestPlayer
+                if (command.Dto.TeamBRecord.BestPlayer.HasValue)
+                {
+                    var isValid = await _playerRepository.IsPlayerAlreadyAssignedAsync(
+                        command.Dto.TeamBRecord.BestPlayer.Value,
+                        match.TournamentId);
+
+                    if (!isValid)
+                    {
+                        context.AddFailure("TeamBRecord.BestPlayer", $"Player {command.Dto.TeamBRecord.BestPlayer.Value} is not in the tournament");
+                    }
+
+                }
+            });
+
+        // Step 8: Validate shots on goal
+
+    }
+
+}
+
+public class TeamMatchResultDTOValidator : AbstractValidator<TeamMatchRecordDTO>
+{
+    public TeamMatchResultDTOValidator()
+    {
+        RuleFor(x => x.TournamentTeamId)
+            .GreaterThan(0)
+            .WithMessage("TournamentTeamId must be greater than 0");
+
+        RuleFor(x => x.GoalsFor)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("GoalsFor must be greater than or equal to 0");
+
+        RuleFor(x => x.GoalAgainst)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("GoalAgainst must be greater than or equal to 0");
+
+        RuleFor(x => x.AcquisitionRate)
+            .InclusiveBetween(0, 100)
+            .WithMessage("AcquisitionRate must be between 0 and 100");
+
+        RuleFor(x => x.BestPlayer)
+            .GreaterThan(0)
+            .When(x => x.BestPlayer.HasValue)
+            .WithMessage("BestPlayer ID must be greater than 0");
+
+        // Additional validations as needed
+        RuleFor(x => x.ShotsOnGoal)
+            .NotNull()
+            .WithMessage("ShotsOnGoal cannot be null");
+    }
+}
+
+public class ShotOnGoalDTOValidator : AbstractValidator<ShotOnGoalDTO>
+{
+    public ShotOnGoalDTOValidator()
+    {
+        RuleFor(x => x.Time)
+            .NotNull()
+            .WithMessage("Shot time is required");
+
+        RuleFor(x => x.PlayerTeamId)
+            .GreaterThan(0)
+            .WithMessage("PlayerTeamId must be greater than 0");
+
+        RuleFor(x => x.GoalkeeperTeamId)
+            .GreaterThan(0)
+            .WithMessage("GoalkeeperTeamId must be greater than 0");
+
+        // Additional validation for whether the shot is a goal
+        RuleFor(x => x.IsGoal)
+            .NotNull()
+            .WithMessage("IsGoal property must be specified");
+    }
+}

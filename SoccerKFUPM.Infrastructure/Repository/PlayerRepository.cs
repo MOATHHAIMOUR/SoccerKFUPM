@@ -13,7 +13,8 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
 {
     private readonly IDbConnection _connection = connection;
 
-    public async Task<bool> AddPlayerAsync(Player player)
+
+    public async Task<int?> AddPlayerAsync(Player player)
     {
         using var command = new SqlCommand("dbo.SP_InsertPlayerWithMultipleContacts", (SqlConnection)_connection)
         {
@@ -31,8 +32,9 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
         command.Parameters.AddWithValue("@DepartmentId", player.DepartmentId);
         command.Parameters.AddWithValue("@PlayerStatus", player.PlayerType);
 
+        // ContactInfos TVP
         var contactTable = new DataTable();
-        contactTable.Columns.Add("ContactType", typeof(string));
+        contactTable.Columns.Add("ContactType", typeof(int));
         contactTable.Columns.Add("Value", typeof(string));
 
         foreach (var contact in player.Person.PersonalContactInfos)
@@ -44,13 +46,20 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
         contactInfosParam.SqlDbType = SqlDbType.Structured;
         contactInfosParam.TypeName = "dbo.ContactInfoType";
 
+        // OUTPUT: PersonId
+        var personIdParam = new SqlParameter("@PersonId", SqlDbType.Int)
+        {
+            Direction = ParameterDirection.Output
+        };
+        command.Parameters.Add(personIdParam);
+
         if (_connection.State != ConnectionState.Open)
             await ((SqlConnection)_connection).OpenAsync();
 
         try
         {
             await command.ExecuteNonQueryAsync();
-            return true;
+            return personIdParam.Value == DBNull.Value ? null : (int?)personIdParam.Value;
         }
         catch
         {
@@ -58,6 +67,8 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
             throw;
         }
     }
+
+
 
     public async Task<Player?> GetPlayerByIdAsync(int playerId)
     {
@@ -141,6 +152,41 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
     }
 
 
+    public async Task<bool> ValidatePlayerTeamsInTeamAsync(
+        int tournamentId,
+        int tournamentTeamId,
+        List<int> playerTeamIds)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_ValidatePlayerTeamsInTeam", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        // Add scalar parameters
+        command.Parameters.AddWithValue("@TournamentId", tournamentId);
+        command.Parameters.AddWithValue("@TournamentTeamId", tournamentTeamId);
+
+        // Prepare table-valued parameter
+        var tvpTable = CreatePlayerTeamIdTable(playerTeamIds);
+        var tvpParam = command.Parameters.AddWithValue("@PlayerTeams", tvpTable);
+        tvpParam.SqlDbType = SqlDbType.Structured;
+        tvpParam.TypeName = "TVP_PlayerTeamIdList"; // ✅ use the new TVP type name
+
+        // Add return value
+        var returnValue = new SqlParameter
+        {
+            Direction = ParameterDirection.ReturnValue,
+            SqlDbType = SqlDbType.Int
+        };
+        command.Parameters.Add(returnValue);
+
+        await connection.OpenAsync();
+        await command.ExecuteNonQueryAsync();
+
+        return (int)returnValue.Value == 1;
+    }
+
 
     public async Task<bool> AssignPlayerToTeamAsync(PlayerTeam playerTeam)
     {
@@ -202,4 +248,20 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
     }
 
 
+    private static DataTable CreatePlayerTeamIdTable(IEnumerable<int> playerTeamIds)
+    {
+        var table = new DataTable();
+        table.Columns.Add("PlayerTeamId", typeof(int));
+
+        foreach (var id in playerTeamIds)
+        {
+            table.Rows.Add(id);
+        }
+
+        return table;
+    }
+
+
+
 }
+

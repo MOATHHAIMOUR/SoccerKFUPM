@@ -1,5 +1,4 @@
 using FluentValidation;
-using SoccerKFUPM.Application.DTOs.ContactInfoDTOs;
 
 namespace SoccerKFUPM.Application.Features.ManagersFeature.Commands.AddManager;
 
@@ -10,6 +9,15 @@ public class AddManagerCommandValidator : AbstractValidator<AddManagerCommand>
         RuleFor(x => x.AddManagerDTO.KFUPMId)
             .NotEmpty().WithMessage("KFUPM ID is required")
             .Length(9).WithMessage("KFUPM ID must be exactly 9 characters");
+
+        RuleFor(x => x.AddManagerDTO.UserName)
+.NotEmpty().WithMessage("Username is required.")
+.EmailAddress().WithMessage("Username must be a valid email address.");
+
+        RuleFor(x => x.AddManagerDTO.IntialPassword)
+            .NotEmpty().WithMessage("IntialPassword is required.")
+            .MinimumLength(6).WithMessage("IntialPassword must be at least 6 characters long.");
+
 
         RuleFor(x => x.AddManagerDTO.FirstName)
             .NotEmpty().WithMessage("First name is required")
@@ -35,6 +43,5 @@ public class AddManagerCommandValidator : AbstractValidator<AddManagerCommand>
             .NotEmpty().WithMessage("At least one contact information is required")
             .Must(x => x.Count <= 5).WithMessage("Maximum 5 contact information entries allowed");
 
-        RuleForEach(x => x.AddManagerDTO.PersonalContactInfos).SetValidator(new PersonalContactInfoValidator());
     }
 }

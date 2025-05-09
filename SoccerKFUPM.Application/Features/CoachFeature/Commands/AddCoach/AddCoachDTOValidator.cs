@@ -10,6 +10,16 @@ public class AddCoachDTOValidator : AbstractValidator<AddCoachCommand>
             .NotEmpty().WithMessage("KFUPM ID is required")
             .Length(9).WithMessage("KFUPM ID must be exactly 9 characters");
 
+        RuleFor(x => x.Dto.UserName)
+.NotEmpty().WithMessage("Username is required.")
+.EmailAddress().WithMessage("Username must be a valid email address.");
+
+        RuleFor(x => x.Dto.IntialPassword)
+            .NotEmpty().WithMessage("IntialPassword is required.")
+            .MinimumLength(6).WithMessage("IntialPassword must be at least 6 characters long.");
+
+
+
         RuleFor(x => x.Dto.FirstName)
             .NotEmpty().WithMessage("First name is required")
             .MaximumLength(50).WithMessage("First name cannot exceed 50 characters");

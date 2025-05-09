@@ -76,6 +76,7 @@ namespace SoccerKFUPM.Application.Services
                 JWTToken = newToken,
                 RefreshToken = newRefreshToken,
                 Roles = roles.ToList(),
+                IsUserNeedToResetPassword = user.MustChangePassword,
             });
         }
 
@@ -116,6 +117,8 @@ namespace SoccerKFUPM.Application.Services
             });
 
         }
+
+
 
         public async Task<Result<AuthenticationResponseDTO>> RegisterUserAsync(RegsterAccountRequestDTO registerUserDTO)
         {
@@ -208,6 +211,46 @@ namespace SoccerKFUPM.Application.Services
             }).ToList();
 
             return Result<List<RoleDTO>>.Success(result);
+        }
+
+
+
+        public async Task<Result<bool>> ResetPasswordDirectlyAsync(int userId, string newPassword)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return Result<bool>.Failure(Error.RecoredNotFound("User not found."), HttpStatusCode.NotFound);
+
+
+
+
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+            if (!removeResult.Succeeded)
+            {
+                var errors = string.Join("; ", removeResult.Errors.Select(e => e.Description));
+                return Result<bool>.Failure(Error.ValidationError(errors), HttpStatusCode.BadRequest);
+            }
+
+            var addResult = await _userManager.AddPasswordAsync(user, newPassword);
+
+
+            // ✅ Mark password as no longer needing change and persist
+            user.MustChangePassword = false;
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join("; ", updateResult.Errors.Select(e => e.Description));
+                return Result<bool>.Failure(Error.ValidationError("Password changed but failed to update flag: " + errors), HttpStatusCode.InternalServerError);
+            }
+
+
+            if (!addResult.Succeeded)
+            {
+                var errors = string.Join("; ", addResult.Errors.Select(e => e.Description));
+                return Result<bool>.Failure(Error.ValidationError(errors), HttpStatusCode.BadRequest);
+            }
+
+            return Result<bool>.Success(true);
         }
     }
 }

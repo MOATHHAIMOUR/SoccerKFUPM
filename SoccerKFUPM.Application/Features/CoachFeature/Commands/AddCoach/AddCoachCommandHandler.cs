@@ -22,7 +22,7 @@ public class AddCoachCommandHandler : IRequestHandler<AddCoachCommand, ApiRespon
     {
         // Map and execute
         var coach = _mapper.Map<Coache>(request.Dto);
-        var result = await _coachServices.AddCoachAsync(coach);
+        var result = await _coachServices.AddCoachAsync(coach, request.Dto.UserName, request.Dto.IntialPassword);
 
         return ApiResponseHandler.Build(
             data: result.Value,

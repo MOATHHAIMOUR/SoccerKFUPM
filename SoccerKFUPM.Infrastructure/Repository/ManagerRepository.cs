@@ -15,7 +15,7 @@ public class ManagerRepository : IManagerRepository
         _connection = connection;
     }
 
-    public async Task<bool> AddManagerAsync(Manager manager)
+    public async Task<int?> AddManagerAsync(Manager manager)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);
         using var command = new SqlCommand("SP_AddManager", connection)
@@ -32,7 +32,7 @@ public class ManagerRepository : IManagerRepository
         command.Parameters.AddWithValue("@DateOfBirth", manager.Person.DateOfBirth);
         command.Parameters.AddWithValue("@NationalityId", manager.Person.NationalityId);
 
-        // Prepare TVP for contact info
+        // TVP: Contact info
         var contactTable = new DataTable();
         contactTable.Columns.Add("ContactType", typeof(int));
         contactTable.Columns.Add("Value", typeof(string));
@@ -48,18 +48,19 @@ public class ManagerRepository : IManagerRepository
             Value = contactTable
         });
 
-        // Output parameter
-        var outputParam = new SqlParameter("@IsSuccessful", SqlDbType.Bit)
+        // Output parameter for PersonId
+        var personIdParam = new SqlParameter("@PersonId", SqlDbType.Int)
         {
             Direction = ParameterDirection.Output
         };
-        command.Parameters.Add(outputParam);
+        command.Parameters.Add(personIdParam);
 
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
 
-        return (bool)outputParam.Value;
+        return personIdParam.Value == DBNull.Value ? null : (int?)personIdParam.Value;
     }
+
 
     public async Task<ManagerView?> GetManagerByIdAsync(int managerId)
     {

@@ -7,6 +7,7 @@ using SoccerKFUPM.Application.DTOs.AuthDTOs;
 using SoccerKFUPM.Application.Features.AuthFeature.Commands.Authentication;
 using SoccerKFUPM.Application.Features.AuthFeature.Commands.RefreshToken;
 using SoccerKFUPM.Application.Features.AuthFeature.Commands.RegisterUser;
+using SoccerKFUPM.Application.Features.AuthFeature.Commands.ResetPasswordCommand;
 using SoccerKFUPM.Application.Features.AuthFeature.Queries.GetAllRoles;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -109,6 +110,17 @@ namespace SoccerKFUPM.API.Controllers
             var result = await _mediator.Send(new GetAllRolesQuery());
             return StatusCode((int)result.StatusCode, result);
         }
+
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Reset user password (ResetPasswordDTO)", Description = "Allows a user to reset their password by providing email and new password.")]
+        public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
+        {
+            var result = await _mediator.Send(new ResetPasswordCommand(resetPasswordDTO));
+            return StatusCode((int)result.StatusCode, result);
+        }
+
 
     }
 }
