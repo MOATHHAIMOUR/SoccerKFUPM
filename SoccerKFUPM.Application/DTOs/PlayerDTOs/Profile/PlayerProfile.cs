@@ -7,6 +7,9 @@ public class PlayerProfile : AutoMapper.Profile
 {
     public PlayerProfile()
     {
+        CreateMap<PlayerViolationView, PlayerViolationDTO>();
+        CreateMap<TopScorerPlayerView, TopScorerPlayerDTO>();
+
         CreateMap<AssignPlayerIntoTeamDTO, PlayerTeam>()
             .ForMember(dest => dest.PlayerPosition, opt => opt.MapFrom(src => (PlayerPosition)src.Position))
             .ForMember(dest => dest.PlayerRole, opt => opt.MapFrom(src => (PlayerRole)src.Role));

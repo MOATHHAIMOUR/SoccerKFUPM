@@ -9,6 +9,7 @@ using SoccerKFUPM.Application.Features.MatchFeature.Queries.GetAllScheduledMatch
 using SoccerKFUPM.Application.Features.MatchFeature.Queries.GetUpcomingMatchesByTeam;
 using SoccerKFUPM.Domain.Entities.Views;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 
 namespace SoccerKFUPM.API.Controllers;
 
@@ -72,13 +73,27 @@ public class MatchController : AppController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<bool>>> AddMatchResult(
-
-        [FromBody] AddMatchRecordDTO AddMatchResultDTO)
+    [FromBody] List<AddMatchRecordDTO> AddMatchResultADTO)
     {
+        foreach (var matchResult in AddMatchResultADTO)
+        {
+            var result = await _mediator.Send(new AddMatchResultCommand(matchResult));
 
-        var result = await _mediator.Send(new AddMatchResultCommand(AddMatchResultDTO));
-        return StatusCode((int)result.StatusCode, result);
+            if (!result.Succeeded) // Assuming ApiResponse has this property
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+        }
+
+        return Ok(new ApiResponse<bool>
+        {
+            Succeeded = true,
+            Message = "All match records inserted successfully.",
+            Data = true,
+            StatusCode = HttpStatusCode.OK
+        });
     }
+
 
     [HttpGet("upcoming-matches")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<UpcomingMatchDTO>>), StatusCodes.Status200OK)]

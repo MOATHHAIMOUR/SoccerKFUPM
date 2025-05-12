@@ -4,4 +4,5 @@ public interface ISharedRepository
 {
     Task<List<Country>> GetAllCountriesAsync();
     Task<List<Department>> GetAllDepartmentsAsync();
+    Task<List<PersonalContactInfo>> GetPersonalContactInfoByPersonIdAsync(int personId);
 }

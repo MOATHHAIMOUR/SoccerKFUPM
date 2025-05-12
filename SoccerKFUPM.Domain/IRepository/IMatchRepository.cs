@@ -5,6 +5,8 @@ namespace SoccerKFUPM.Domain.IRepository;
 
 public interface IMatchRepository
 {
+    public Task<int> InsertFullMatchRecordAsync(
+    MatchRecord matchRecord);
     public Task<bool> ValidateTournamentRefereesAsync(
 int matchScheduleId,
 List<int> tournamentRefereeIds);
@@ -25,12 +27,12 @@ int pageSize = 10);
 
     public Task<bool> ValidatePlayersInTeamInTournamentAsync(int tournamentId, int tournamentTeamId, List<int> playerIds);
 
-  
- public  Task<List<Match>> GetUpcomingMatchesByTeamAsync(
-    string? teamName,
-    string? tournamentName = null,
-    DateTime? fromDate = null,
-    DateTime? toDate = null,
-    int pageNumber = 1,
-    int pageSize = 10);
+
+    public Task<List<Match>> GetUpcomingMatchesByTeamAsync(
+       string? teamName,
+       string? tournamentName = null,
+       DateTime? fromDate = null,
+       DateTime? toDate = null,
+       int pageNumber = 1,
+       int pageSize = 10);
 }

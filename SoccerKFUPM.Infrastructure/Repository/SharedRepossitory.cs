@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 using System.Data;
 
 namespace SoccerKFUPM.Infrastructure.Repository;
@@ -64,5 +65,36 @@ public class SharedRepossitory : ISharedRepository
         return departments;
     }
 
+    public async Task<List<PersonalContactInfo>> GetPersonalContactInfoByPersonIdAsync(int personId)
+    {
+        var contactInfos = new List<PersonalContactInfo>();
+        const string sql = @"
+            SELECT 
+                PersonalContactInfoId,
+                PersonId,
+                ContactType,
+                Value
+            FROM PersonalContactsInfos
+            WHERE PersonId = @PersonId;";
 
+        await using var conn = new SqlConnection(_db.ConnectionString);
+        await using var cmd = new SqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@PersonId", personId);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+
+        while (await reader.ReadAsync())
+        {
+            contactInfos.Add(new PersonalContactInfo
+            {
+                PersonalContactInfoId = reader.GetInt32(reader.GetOrdinal("PersonalContactInfoId")),
+                PersonId = reader.GetInt32(reader.GetOrdinal("PersonId")),
+                ContactType = (ContactType)reader.GetInt32(reader.GetOrdinal("ContactType")),
+                Value = reader.GetString(reader.GetOrdinal("Value"))
+            });
+        }
+
+        return contactInfos;
+    }
 }

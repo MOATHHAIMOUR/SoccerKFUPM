@@ -110,4 +110,21 @@ public class PlayerServices : IPlayerServices
         return Result<bool>.Success(true);
     }
 
+    public async Task<Result<List<TopScorerPlayerView>>> GetTopScorersAsync(int pageNumber, int pageSize)
+    {
+
+        var topScorers = await _playerRepository.GetTopScorersAsync(pageNumber, pageSize);
+        return Result<List<TopScorerPlayerView>>.Success(topScorers);
+
+
+    }
+
+    public async Task<Result<List<PlayerViolationView>>> GetPlayerViolationsAsync(int pageNumber, int pageSize, int? cardType)
+    {
+        var violations = await _playerRepository.GetPlayerViolationsAsync(pageNumber, pageSize, cardType);
+
+
+        return Result<List<PlayerViolationView>>.Success(violations);
+
+    }
 }

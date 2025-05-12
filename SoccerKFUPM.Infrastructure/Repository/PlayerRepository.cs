@@ -6,7 +6,6 @@ using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.Enums;
 using System.Data;
 
-
 namespace SoccerKFUPM.Infrastructure.Repository;
 
 public class PlayerRepository(IDbConnection connection) : IPlayerRepository
@@ -260,7 +259,129 @@ public class PlayerRepository(IDbConnection connection) : IPlayerRepository
 
         return table;
     }
+    public async Task<List<TopScorerPlayerView>> GetTopScorersAsync(int pageNumber, int pageSize)
+    {
+        var offset = (pageNumber - 1) * pageSize;
+        var result = new List<TopScorerPlayerView>();
 
+        var query = @"
+            WITH CTE AS (
+                SELECT 
+                    PT.PlayerTeamId,
+                    PE.FirstName,
+                    PE.LastName, 
+                    COUNT(*) AS NumberOfGoalsPerPlayer 
+                FROM dbo.ShotsOnGoal 
+                INNER JOIN dbo.PlayersTeams PT ON PT.PlayerTeamId = ShotsOnGoal.PlayerTeamId
+                INNER JOIN dbo.Players PP ON PP.PlayerId = PT.PlayerId
+                INNER JOIN dbo.People PE ON PE.PersonId = PP.PersonId
+                WHERE IsGoal = 1
+                GROUP BY PT.PlayerTeamId, PE.FirstName, PE.LastName
+            ) 
+            SELECT * FROM CTE 
+            ORDER BY CTE.NumberOfGoalsPerPlayer DESC
+            OFFSET @Offset ROWS
+            FETCH NEXT @PageSize ROWS ONLY";
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand(query, connection);
+
+        command.Parameters.AddWithValue("@Offset", offset);
+        command.Parameters.AddWithValue("@PageSize", pageSize);
+
+        await connection.OpenAsync();
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            result.Add(new TopScorerPlayerView
+            {
+                PlayerTeamId = reader.GetInt32(reader.GetOrdinal("PlayerTeamId")),
+                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                NumberOfGoalsPerPlayer = reader.GetInt32(reader.GetOrdinal("NumberOfGoalsPerPlayer"))
+            });
+        }
+
+        return result;
+    }
+
+
+
+    public async Task<List<PlayerViolationView>> GetPlayerViolationsAsync(int pageNumber, int pageSize, int? cardType)
+    {
+        var offset = (pageNumber - 1) * pageSize;
+        var result = new List<PlayerViolationView>();
+
+        var query = @"
+        SELECT 
+            CV.ViolationId,
+            T.Name AS TeamName,
+            PE.FirstName,
+            PE.LastName,
+            CASE 
+                WHEN CV.CardType = 1 THEN 'Red Card'
+                ELSE 'Yellow'
+            END AS CardType
+        FROM dbo.CardViolations CV
+        INNER JOIN dbo.MatchRecords MR ON MR.MatchRecordId = CV.MatchRecordId
+        INNER JOIN dbo.MatchSchedules MH ON MH.MatchScheduleId = MR.MatchScheduleId
+        INNER JOIN dbo.TournamentTeams TT ON TT.TournamentTeamId = MH.TournamentTeamIdA
+        INNER JOIN dbo.Teams T ON T.TeamId = TT.TeamId
+        INNER JOIN dbo.PlayersTeams PT ON PT.PlayerTeamId = CV.PlayerTeamId
+        INNER JOIN dbo.Players P ON P.PlayerId = PT.PlayerId
+        INNER JOIN dbo.People PE ON PE.PersonId = P.PersonId
+        WHERE (@CardType IS NULL OR CV.CardType = @CardType)
+
+        UNION ALL
+
+        SELECT 
+            CV.ViolationId,
+            T.Name AS TeamName,
+            PE.FirstName,
+            PE.LastName,
+            CASE 
+                WHEN CV.CardType = 1 THEN 'Red Card'
+                ELSE 'Yellow'
+            END AS CardType
+        FROM dbo.CardViolations CV
+        INNER JOIN dbo.MatchRecords MR ON MR.MatchRecordId = CV.MatchRecordId
+        INNER JOIN dbo.MatchSchedules MH ON MH.MatchScheduleId = MR.MatchScheduleId
+        INNER JOIN dbo.TournamentTeams TT ON TT.TournamentTeamId = MH.TournamentTeamIdB
+        INNER JOIN dbo.Teams T ON T.TeamId = TT.TeamId
+        INNER JOIN dbo.PlayersTeams PT ON PT.PlayerTeamId = CV.PlayerTeamId
+        INNER JOIN dbo.Players P ON P.PlayerId = PT.PlayerId
+        INNER JOIN dbo.People PE ON PE.PersonId = P.PersonId
+        WHERE (@CardType IS NULL OR CV.CardType = @CardType)
+
+        ORDER BY ViolationId
+        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+    ";
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand(query, connection);
+
+        command.Parameters.AddWithValue("@Offset", offset);
+        command.Parameters.AddWithValue("@PageSize", pageSize);
+        command.Parameters.AddWithValue("@CardType", cardType ?? (object)DBNull.Value);
+
+        await connection.OpenAsync();
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            result.Add(new PlayerViolationView
+            {
+                ViolationId = reader.GetInt32(reader.GetOrdinal("ViolationId")),
+                TeamName = reader.GetString(reader.GetOrdinal("TeamName")),
+                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                CardType = reader.GetString(reader.GetOrdinal("CardType"))
+            });
+        }
+
+        return result;
+    }
 
 
 }

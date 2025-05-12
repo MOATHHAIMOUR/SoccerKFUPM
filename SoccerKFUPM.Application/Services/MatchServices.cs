@@ -90,8 +90,10 @@ public class MatchServices : IMatchServices
         return Result<bool>.Success(true);
     }
 
-    public Task<Result<bool>> AddMatchResultAsync(MatchRecord matchResult)
+    public async Task<Result<bool>> AddMatchResultAsync(MatchRecord matchResult)
     {
-        throw new NotImplementedException();
+        await _matchRepository.InsertFullMatchRecordAsync(matchResult);
+
+        return Result<bool>.Success(true);
     }
 }

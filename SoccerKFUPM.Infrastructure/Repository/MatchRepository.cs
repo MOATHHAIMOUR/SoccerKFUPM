@@ -129,6 +129,113 @@ public class MatchRepository : IMatchRepository
     }
 
 
+    public async Task<int> InsertFullMatchRecordAsync(
+    MatchRecord matchRecord)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_InsertFullMatchRecord", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        // Regular parameters
+        command.Parameters.AddWithValue("@MatchScheduleId", matchRecord.MatchScheduleId);
+        command.Parameters.AddWithValue("@TournamentTeamId", matchRecord.TournamentTeamId);
+        command.Parameters.AddWithValue("@GoalsFor", matchRecord.GoalsFor);
+        command.Parameters.AddWithValue("@GoalAgainst", matchRecord.GoalAgainst);
+        command.Parameters.AddWithValue("@AcquisitionRate", matchRecord.AcquisitionRate);
+        command.Parameters.AddWithValue("@IsWin", matchRecord.GoalsFor > matchRecord.GoalAgainst);
+        command.Parameters.AddWithValue("@BestTeamPlayerId", (object?)matchRecord.BestPlayer ?? DBNull.Value);
+
+        var shotsParam = command.Parameters.AddWithValue("@Shots", ToShotsDataTable(matchRecord.ShotsOnGoal));
+        shotsParam.SqlDbType = SqlDbType.Structured;
+        shotsParam.TypeName = "ShotsOnGoalType";
+
+        var cardsParam = command.Parameters.AddWithValue("@Cards", ToCardsDataTable(matchRecord.CardViolations));
+        cardsParam.SqlDbType = SqlDbType.Structured;
+        cardsParam.TypeName = "CardsViloationsType_V2";
+
+        var subsParam = command.Parameters.AddWithValue("@Subs", ToSubsDataTable(matchRecord.MatchSubstitutions));
+        subsParam.SqlDbType = SqlDbType.Structured;
+        subsParam.TypeName = "MatchSubstitutionsType";
+
+
+        // Output parameter
+        var outputParam = new SqlParameter("@InsertedMatchRecoredId", SqlDbType.Int)
+        {
+            Direction = ParameterDirection.Output
+        };
+        command.Parameters.Add(outputParam);
+
+        await connection.OpenAsync();
+        await command.ExecuteNonQueryAsync();
+
+        return (int)outputParam.Value;
+    }
+
+
+
+    private DataTable ToShotsDataTable(List<ShotOnGoal> shots)
+    {
+        var table = new DataTable();
+        table.Columns.Add("Time", typeof(int));
+        table.Columns.Add("PlayerTeamId", typeof(int));
+        table.Columns.Add("GoalkeeperTeamId", typeof(int));
+        table.Columns.Add("ShotType", typeof(int));
+        table.Columns.Add("IsGoal", typeof(bool));
+
+        foreach (var shot in shots)
+        {
+            table.Rows.Add(shot.Time, shot.PlayerTeamId, shot.GoalkeeperTeamId, shot.ShotType, shot.IsGoal);
+        }
+
+        return table;
+    }
+
+    private DataTable ToCardsDataTable(List<CardViolation> cards)
+    {
+        var table = new DataTable();
+        table.Columns.Add("PlayerTeamId", typeof(int));
+        table.Columns.Add("CardType", typeof(int));
+        table.Columns.Add("InjuredPlayerTeamId", typeof(int));
+        table.Columns.Add("Notes", typeof(string));
+        table.Columns.Add("TournamentRefereeId", typeof(int));
+        table.Columns.Add("Time", typeof(int));
+
+        foreach (var card in cards)
+        {
+            table.Rows.Add(
+                card.PlayerId,
+                card.CardType,
+                card.InjuredPlayerId,
+                card.Notes ?? (object)DBNull.Value,
+                card.TournamentRefereeId,
+                card.Time
+            );
+        }
+
+        return table;
+    }
+
+
+    private DataTable ToSubsDataTable(List<MatchSubstitution> subs)
+    {
+        var table = new DataTable();
+        table.Columns.Add("PlayerInTeamId", typeof(int));
+        table.Columns.Add("PlayerTeamOutId", typeof(int));
+        table.Columns.Add("TimeMinute", typeof(int));
+        table.Columns.Add("Reason", typeof(int));
+
+        foreach (var sub in subs)
+        {
+            table.Rows.Add(sub.PlayerInTeamId, sub.PlayerTeamOutId, sub.TimeMinute, sub.Reason);
+        }
+
+        return table;
+    }
+
+
+
     public async Task<MatchSchedule?> GetMatchScheduleByIdAsync(int id)
     {
         using var connection = new SqlConnection(_connection.ConnectionString);

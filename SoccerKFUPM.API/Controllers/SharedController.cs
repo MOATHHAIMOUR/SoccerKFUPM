@@ -1,11 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SoccerKFUPM.API.Controllers.Base;
+using SoccerKFUPM.Application.Common.ApiResponse;
 using SoccerKFUPM.Application.Common.ResultPattern;
+using SoccerKFUPM.Application.DTOs.ContactInfoDTOs;
 using SoccerKFUPM.Application.DTOs.sharedDTOs;
 using SoccerKFUPM.Application.DTOs.SharedDTOs;
 using SoccerKFUPM.Application.Features.sharedFeature.Queries.FetchCountries;
 using SoccerKFUPM.Application.Features.sharedFeature.Queries.FetchDepartments;
+using SoccerKFUPM.Application.Features.SharedFeature.Queries.GetPersonalContactInfoByPersonId;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SoccerKFUPM.API.Controllers
@@ -31,6 +34,17 @@ namespace SoccerKFUPM.API.Controllers
         public async Task<ActionResult<ApiResponse<List<DepartmentDTO>>>> FetchDepartments()
         {
             var result = await _mediator.Send(new FetchDepartmentsQuery());
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpGet("personal-contact-info/{personId}")]
+        [SwaggerOperation(
+            Summary = "Get personal contact information by person ID",
+            Description = "Retrieve all personal contact information for a specific person by their ID."
+        )]
+        public async Task<ActionResult<Result<List<ContactInfoDTO>>>> GetPersonalContactInfo(int personId)
+        {
+            var result = await _mediator.Send(new GetPersonalContactInfoByPersonIdQuery(personId));
             return StatusCode((int)result.StatusCode, result);
         }
     }

@@ -8,7 +8,6 @@ public class MatchResultProfile : Profile
 {
     public MatchResultProfile()
     {
-        CreateMap<AddMatchRecordDTO, MatchRecord>();
         CreateMap<TeamMatchRecordDTO, MatchRecord>();
         CreateMap<ShotOnGoalDTO, ShotOnGoal>();
     }

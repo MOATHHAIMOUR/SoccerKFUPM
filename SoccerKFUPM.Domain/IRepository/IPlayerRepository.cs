@@ -1,6 +1,5 @@
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.Entities.Views;
-
 namespace Namespace.SoccerKFUPM.Domain.IRepository;
 
 public interface IPlayerRepository
@@ -16,5 +15,7 @@ public interface IPlayerRepository
 
     public Task<bool> IsPlayerAlreadyAssignedAsync(int playerId, int tournamentId);
 
+    public Task<List<TopScorerPlayerView>> GetTopScorersAsync(int pageNumber, int pageSize);
 
+    public Task<List<PlayerViolationView>> GetPlayerViolationsAsync(int pageNumber, int pageSize, int? cardType);
 }
