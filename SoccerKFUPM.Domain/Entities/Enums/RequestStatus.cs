@@ -1,7 +1,7 @@
 namespace SoccerKFUPM.Domain.Entities.Enums;
 
 /// <summary>
-/// Status of requests in the system
+/// Status of requests in the system 100%
 /// </summary>
 public enum RequestStatus
 {

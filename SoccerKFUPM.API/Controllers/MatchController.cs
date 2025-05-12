@@ -6,6 +6,7 @@ using SoccerKFUPM.Application.DTOs.MatchDTOs;
 using SoccerKFUPM.Application.Features.MatchFeature.Commands.AddMatchResult;
 using SoccerKFUPM.Application.Features.MatchFeature.Commands.ScheduleMatch;
 using SoccerKFUPM.Application.Features.MatchFeature.Queries.GetAllScheduledMatches;
+using SoccerKFUPM.Application.Features.MatchFeature.Queries.GetUpcomingMatchesByTeam;
 using SoccerKFUPM.Domain.Entities.Views;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -77,5 +78,21 @@ public class MatchController : AppController
 
         var result = await _mediator.Send(new AddMatchResultCommand(AddMatchResultDTO));
         return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpGet("upcoming-matches")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<UpcomingMatchDTO>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<UpcomingMatchDTO>>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<IEnumerable<UpcomingMatchDTO>>>> GetUpcomingMatchesByTeam(
+        [FromQuery] string? teamName,
+        [FromQuery] string? tournamentName = null,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var query = new GetUpcomingMatchesByTeamQuery(teamName, tournamentName, fromDate, toDate, pageNumber, pageSize);
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 }

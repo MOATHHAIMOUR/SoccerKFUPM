@@ -6,7 +6,7 @@ using SoccerKFUPM.Application.Services.IServises;
 
 namespace SoccerKFUPM.Application.Features.ManagersFeature.Queries.GetManager;
 
-public class GetManagerQueryHandler : IRequestHandler<GetManagerQuery, ApiResponse<ManagerDTO>>
+public class GetManagerQueryHandler : IRequestHandler<GetManagerQuery, ApiResponse<ManagerViewDTO>>
 {
     private readonly IManagerServices _managerServices;
 
@@ -15,7 +15,7 @@ public class GetManagerQueryHandler : IRequestHandler<GetManagerQuery, ApiRespon
         _managerServices = managerServices;
     }
 
-    public async Task<ApiResponse<ManagerDTO>> Handle(GetManagerQuery request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<ManagerViewDTO>> Handle(GetManagerQuery request, CancellationToken cancellationToken)
     {
         var result = await _managerServices.GetManagerByIdAsync(request.ManagerId);
         return ApiResponseHandler.Build(result.Value, result.StatusCode, result.IsSuccess, null, [result.Error.Message]);

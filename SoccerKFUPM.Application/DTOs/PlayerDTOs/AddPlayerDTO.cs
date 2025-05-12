@@ -16,6 +16,6 @@ public class AddPlayerDTO
     public required PlayerType PlayerType { get; set; }
     public required int DepartmentId { get; set; }
     public required PlayerStatus PlayerStatus { get; set; }
-    public required List<PersonalContactInfoDTO> PersonalContactInfos { get; set; }
+    public required List<ContactInfoDTO> PersonalContactInfos { get; set; }
 
 }

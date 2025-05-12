@@ -7,4 +7,5 @@ public class AddTeamDTO
     public required string Website { get; set; }
     public required int NumberOfPlayers { get; set; }
     public required int ManagerId { get; set; }
+    public required List<ContactInfoDTOs.ContactInfoDTO> ContactInfo { get; set; }
 }

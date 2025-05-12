@@ -1,7 +1,7 @@
 ﻿namespace SoccerKFUPM.Domain.Entities.Enums
 {
     /// <summary>
-    /// Status of a football match
+    /// Status of a football match 100%
     /// </summary>
     public enum MatchStatus
     {

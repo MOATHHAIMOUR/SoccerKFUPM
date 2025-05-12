@@ -9,6 +9,8 @@ public class ManagerProfile : AutoMapper.Profile
     public ManagerProfile()
     {
 
+        CreateMap<ManagerSearchView, ManagerSearchViewDTO>();
+
         CreateMap<AddManagerDTO, Manager>()
             .ForMember(dest => dest.Person, opt => opt.MapFrom(src => new Person
             {
@@ -28,6 +30,8 @@ public class ManagerProfile : AutoMapper.Profile
 
         CreateMap<ManagerView, ManagerDTO>();
 
+        CreateMap<ManagerView, ManagerViewDTO>()
+            .ForMember(dest => dest.ContactInfosDTO, opt => opt.MapFrom(src => src.PersonalContactInfo));
 
         CreateMap<Manager, ManagerDTO>()
             .ForMember(dest => dest.KFUPMId, opt => opt.MapFrom(src => src.Person.KFUPMId))

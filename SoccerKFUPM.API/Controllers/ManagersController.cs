@@ -28,6 +28,25 @@ public class ManagersController : AppController
 
     }
 
+    [HttpPost("Bulk-insert-managers")]
+    [SwaggerOperation(
+        Summary = "Add a new list of managers (AddManagerDTO)",
+        Description = "Creates a new manager with the provided details")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddBulkManager([FromBody] List<AddManagerDTO> dto)
+    {
+
+        foreach (var manager in dto)
+        {
+            await _mediator.Send(new AddManagerCommand(manager));
+        }
+
+        return Ok();
+
+    }
+
     [HttpGet("get/{id:int}")]
     [SwaggerOperation(
         Summary = "Get manager by ID (ManagerDTO)",

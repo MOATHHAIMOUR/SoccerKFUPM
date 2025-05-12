@@ -11,13 +11,9 @@
         public DateTime DateOfBirth { get; set; }
         public int NationalityId { get; set; }
         public string? TeamName { get; set; }
-        public List<PersonalContactInfoView> ContactInfos { get; set; } = new();
+        public List<PersonalContactInfo> PersonalContactInfo { get; set; } = new();
     }
-    public class PersonalContactInfoView
-    {
-        public int ContactType { get; set; }
-        public string Value { get; set; } = string.Empty;
-    }
+
 
 }
 

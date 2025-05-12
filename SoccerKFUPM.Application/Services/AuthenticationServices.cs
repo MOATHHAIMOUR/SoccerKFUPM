@@ -158,7 +158,7 @@ namespace SoccerKFUPM.Application.Services
             }
 
             // ✅ 3. Assign the default role (Guest)
-            var roleAssignmentResult = await _userManager.AddToRoleAsync(newUser, "Gust");
+            var roleAssignmentResult = await _userManager.AddToRoleAsync(newUser, "Guest");
             if (!roleAssignmentResult.Succeeded)
             {
                 return Result<AuthenticationResponseDTO>.Failure(
@@ -194,7 +194,7 @@ namespace SoccerKFUPM.Application.Services
                 AuthenticationMessage = "Authenticated successfully.",
                 JWTToken = jwtToken,
                 RefreshToken = refreshToken,
-                Roles = ["GUST"]
+                Roles = ["Guest"]
 
             });
         }

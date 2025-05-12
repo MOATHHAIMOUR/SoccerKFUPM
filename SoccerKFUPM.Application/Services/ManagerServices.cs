@@ -6,7 +6,6 @@ using SoccerKFUPM.Application.Common.ResultPattern;
 using SoccerKFUPM.Application.DTOs.ManagerDTOs;
 using SoccerKFUPM.Application.Services.IServises;
 using SoccerKFUPM.Domain.Entities;
-using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.IRepository;
 using System.Net;
 
@@ -40,21 +39,21 @@ public class ManagerServices : IManagerServices
 
     }
 
-    public async Task<Result<ManagerDTO>> GetManagerByIdAsync(int managerId)
+    public async Task<Result<ManagerViewDTO>> GetManagerByIdAsync(int managerId)
     {
 
         var manager = await _managerRepository.GetManagerByIdAsync(managerId);
         if (manager is null)
-            return Result<ManagerDTO>.Failure(Error.RecoredNotFound($"manager with id: {managerId} is not found"), System.Net.HttpStatusCode.NotFound);
+            return Result<ManagerViewDTO>.Failure(Error.RecoredNotFound($"manager with id: {managerId} is not found"), System.Net.HttpStatusCode.NotFound);
 
-        var managerDto = _mapper.Map<ManagerDTO>(manager);
-        return Result<ManagerDTO>.Success(managerDto);
+        var managerDto = _mapper.Map<ManagerViewDTO>(manager);
+        return Result<ManagerViewDTO>.Success(managerDto);
 
 
     }
 
 
-    public async Task<Result<(List<ManagerView> Managers, int TotalCount)>> SearchManagersAsync(
+    public async Task<Result<(List<ManagerSearchViewDTO> Managers, int TotalCount)>> SearchManagersAsync(
     string? kfupmId,
     string? firstName,
     string? secondName,
@@ -79,7 +78,9 @@ public class ManagerServices : IManagerServices
             pageSize
         );
 
-        return Result<(List<ManagerView>, int)>.Success((managers, totalCount));
+        var ManagersSearchViewDTO = _mapper.Map<List<ManagerSearchViewDTO>>(managers);
+
+        return Result<(List<ManagerSearchViewDTO>, int)>.Success((ManagersSearchViewDTO, ManagersSearchViewDTO.Count));
     }
 
 }

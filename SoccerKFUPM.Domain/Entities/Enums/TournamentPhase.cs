@@ -1,7 +1,7 @@
 namespace SoccerKFUPM.Domain.Entities.Enums;
 
 /// <summary>
-/// Phases of a tournament
+/// Phases of a tournament 100%
 /// </summary>
 public enum TournamentPhase
 {

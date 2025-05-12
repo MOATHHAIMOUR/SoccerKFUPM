@@ -10,5 +10,6 @@
         public int ManagerId { get; set; }
         public string ManagerFirstName { get; set; } = string.Empty;
         public string ManagerLastName { get; set; } = string.Empty;
+        public List<TeamContactInfo> teamContactInfos = [];
     }
 }

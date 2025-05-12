@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.IRepository;
 using System.Data;
@@ -89,7 +90,7 @@ public class ManagerRepository : IManagerRepository
             DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
             NationalityId = reader.GetInt32(reader.GetOrdinal("NationalityId")),
             TeamName = reader.IsDBNull(reader.GetOrdinal("TeamName")) ? null : reader.GetString(reader.GetOrdinal("TeamName")),
-            ContactInfos = []
+            PersonalContactInfo = []
         };
 
         // Read second result set (contact info)
@@ -97,9 +98,9 @@ public class ManagerRepository : IManagerRepository
         {
             while (await reader.ReadAsync())
             {
-                managerView.ContactInfos.Add(new PersonalContactInfoView
+                managerView.PersonalContactInfo.Add(new PersonalContactInfo
                 {
-                    ContactType = reader.GetInt32(reader.GetOrdinal("ContactType")),
+                    ContactType = (ContactType)reader.GetInt32(reader.GetOrdinal("ContactType")),
                     Value = reader.GetString(reader.GetOrdinal("Value"))
                 });
             }
@@ -108,7 +109,7 @@ public class ManagerRepository : IManagerRepository
         return managerView;
     }
 
-    public async Task<(List<ManagerView> managers, int totalCount)> SearchManagersAsync(
+    public async Task<(List<ManagerSearchView> managers, int totalCount)> SearchManagersAsync(
             string? kfupmId = null,
             string? firstName = null,
             string? secondName = null,
@@ -143,14 +144,14 @@ public class ManagerRepository : IManagerRepository
         };
         command.Parameters.Add(outputParam);
 
-        var managers = new List<ManagerView>();
+        var managers = new List<ManagerSearchView>();
 
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
-            var manager = new ManagerView
+            var manager = new ManagerSearchView
             {
                 ManagerId = reader.GetInt32(reader.GetOrdinal("ManagerId")),
                 KFUPMId = reader.GetString(reader.GetOrdinal("KFUPMId")),
@@ -161,14 +162,12 @@ public class ManagerRepository : IManagerRepository
                 DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
                 NationalityId = reader.GetInt32(reader.GetOrdinal("NationalityId")),
                 TeamName = reader.IsDBNull(reader.GetOrdinal("TeamName")) ? null : reader.GetString(reader.GetOrdinal("TeamName")),
-                ContactInfos = new List<PersonalContactInfoView>() // Not fetched here
             };
 
             managers.Add(manager);
         }
 
-        int totalCount = (int)(outputParam.Value ?? 0);
-        return (managers, totalCount);
+        return (managers, managers.Count);
     }
 
 }

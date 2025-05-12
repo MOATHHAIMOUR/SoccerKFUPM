@@ -7,7 +7,7 @@ namespace SoccerKFUPM.Application.Services.IServises;
 public interface ITeamServices
 {
     Task<Result<bool>> AddTeamAsync(Team team);
-    Task<Result<TeamDTO>> GetTeamByIdAsync(int teamId);
+    Task<Result<TeamViewDTO>> GetTeamByIdAsync(int teamId);
     Task<Result<(List<TeamDTO> teams, int totalCount)>> SearchTeamsAsync(
      string? name = null,
      string? address = null,
@@ -21,7 +21,7 @@ public interface ITeamServices
 
     Task<Result<bool>> UpdateTeamAsync(Team team);
     Task<Result<bool>> DeleteTeamAsync(int teamId);
-    
+
     Task<Result<(List<TeamTournamentViewDTO> teams, int totalCount)>> GetTeamsByTournamentAsync(
         int tournamentId,
         int pageNumber = 1,

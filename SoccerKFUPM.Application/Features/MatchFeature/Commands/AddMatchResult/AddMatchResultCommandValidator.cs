@@ -160,8 +160,139 @@ public class AddMatchResultCommandValidator : AbstractValidator<AddMatchResultCo
                 }
             });
 
-        // Step 8: Validate shots on goal
+        // Step 8: Validate All Players in Team A are from the correct team and tournament
+        RuleFor(x => x)
+            .CustomAsync(async (command, context, cancellation) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return;
 
+                var allPlayerIds = new List<int>();
+
+                // Players who made shots for Team A
+                if (command.Dto.TeamARecord?.ShotsOnGoal != null)
+                    allPlayerIds.AddRange(command.Dto.TeamARecord.ShotsOnGoal.Select(s => s.PlayerTeamId));
+
+                // Players substituted into the game for Team A
+                if (command.Dto.TeamARecord?.matchSubstitutionDTOs != null)
+                    allPlayerIds.AddRange(command.Dto.TeamARecord.matchSubstitutionDTOs.Select(s => s.PlayerInTeamId));
+
+                // Players who received cards for Team A
+                if (command.Dto.TeamARecord?.CardsViolations != null)
+                    allPlayerIds.AddRange(command.Dto.TeamARecord.CardsViolations.Select(c => c.PlayerId));
+
+
+
+                // Add goalkeepers from Team B’s shots (they're Team A's goalkeepers)
+                if (command.Dto.TeamBRecord?.ShotsOnGoal != null)
+                    allPlayerIds.AddRange(command.Dto.TeamBRecord.ShotsOnGoal.Select(s => s.GoalkeeperTeamId));
+
+                // Add Injured Players from Team B’s shots (they're Team A's Players)
+                if (command.Dto.TeamBRecord?.CardsViolations != null)
+                    allPlayerIds.AddRange(command.Dto.TeamBRecord.CardsViolations.Select(s => s.InjuredPlayerTeamId));
+
+                // Remove duplicates
+                allPlayerIds = allPlayerIds
+                    .Where(id => id > 0)
+                    .Distinct()
+                    .ToList();
+
+                if (allPlayerIds.Count == 0)
+                    return;
+
+                var isValid = await _matchRepo.ValidatePlayersInTeamInTournamentAsync(
+                    match.TournamentId,
+                    match.TournamentTeamIdA,
+                    allPlayerIds
+                );
+
+                if (!isValid)
+                {
+                    context.AddFailure("TeamAResult", "Some players listed for Team A are not valid members of the team in this tournament.");
+                }
+            });
+
+        // Step 9: Validate All Players in Team B are from the correct team and tournament
+        RuleFor(x => x)
+            .CustomAsync(async (command, context, cancellation) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return;
+
+                var allPlayerIds = new List<int>();
+
+                // Players who made shots for Team B
+                if (command.Dto.TeamBRecord?.ShotsOnGoal != null)
+                    allPlayerIds.AddRange(command.Dto.TeamBRecord.ShotsOnGoal.Select(s => s.PlayerTeamId));
+
+                // Players substituted into the game for Team B
+                if (command.Dto.TeamBRecord?.matchSubstitutionDTOs != null)
+                    allPlayerIds.AddRange(command.Dto.TeamBRecord.matchSubstitutionDTOs.Select(s => s.PlayerInTeamId));
+
+                // Players who received cards for Team B
+                if (command.Dto.TeamBRecord?.CardsViolations != null)
+                    allPlayerIds.AddRange(command.Dto.TeamBRecord.CardsViolations.Select(c => c.PlayerId));
+
+                // Add goalkeepers from Team A’s shots (they're Team B's goalkeepers)
+                if (command.Dto.TeamARecord?.ShotsOnGoal != null)
+                    allPlayerIds.AddRange(command.Dto.TeamARecord.ShotsOnGoal.Select(s => s.GoalkeeperTeamId));
+
+                // Add Injured Players from Team A’s shots (they're Team B's Players)
+                if (command.Dto.TeamARecord?.CardsViolations != null)
+                    allPlayerIds.AddRange(command.Dto.TeamARecord.CardsViolations.Select(s => s.InjuredPlayerTeamId));
+
+
+                // Remove duplicates and invalid IDs
+                allPlayerIds = allPlayerIds
+                    .Where(id => id > 0)
+                    .Distinct()
+                    .ToList();
+
+                if (allPlayerIds.Count == 0)
+                    return;
+
+                var isValid = await _matchRepo.ValidatePlayersInTeamInTournamentAsync(
+                    match.TournamentId,
+                    match.TournamentTeamIdB,
+                    allPlayerIds
+                );
+
+                if (!isValid)
+                {
+                    context.AddFailure("TeamBResult", "Some players listed for Team B are not valid members of the team in this tournament.");
+                }
+            });
+
+        // Step 10: Validate All Referees are from the correct tournament and match
+        RuleFor(x => x)
+            .CustomAsync(async (command, context, cancellation) =>
+            {
+                if (!TryGetMatch(context, out MatchSchedule match))
+                    return;
+
+                var refereeIds = command.Dto.TeamARecord.CardsViolations
+                    .Select(x => x.TournamentRefreeId)
+                    .Concat(command.Dto.TeamBRecord.CardsViolations.Select(x => x.TournamentRefreeId))
+                    .Where(id => id != 0)
+                    .Distinct()
+                    .ToList();
+
+                if (!refereeIds.Any())
+                {
+                    context.AddFailure("TournamentRefereeIds", "No referees were provided in card violations.");
+                    return;
+                }
+
+                var isValid = await _matchRepo.ValidateTournamentRefereesAsync(
+                    match.MatchScheduleId,
+                    refereeIds
+                );
+
+                if (!isValid)
+                {
+                    context.AddFailure("TournamentRefereeIds", "One or more referees are not assigned to the match.");
+                }
+            });
     }
 
 }

@@ -12,5 +12,5 @@ public class CoachDTO
     public string LastName { get; set; } = null!;
     public DateTime DateOfBirth { get; set; }
     public int NationalityId { get; set; }
-    public List<PersonalContactInfoDTO> PersonalContactInfos { get; set; } = [];
+    public List<ContactInfoDTO> PersonalContactInfos { get; set; } = [];
 }

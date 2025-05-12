@@ -58,15 +58,17 @@ public class TeamServices : ITeamServices
         return Result<(List<TeamDTO> teams, int totalCount)>.Success((teamDTOs, totalCount));
     }
 
-    public async Task<Result<TeamDTO>> GetTeamByIdAsync(int teamId)
+    public async Task<Result<TeamViewDTO>> GetTeamByIdAsync(int teamId)
     {
         var team = await _teamRepository.GetTeamByIdAsync(teamId);
         if (team == null)
         {
-            return Result<TeamDTO>.Failure(Error.RecoredNotFound($"Team with id: {teamId} is not found"), System.Net.HttpStatusCode.NotFound);
+            return Result<TeamViewDTO>.Failure(Error.RecoredNotFound($"Team with id: {teamId} is not found"), System.Net.HttpStatusCode.NotFound);
         }
-        var teamDto = _mapper.Map<TeamDTO>(team);
-        return Result<TeamDTO>.Success(teamDto);
+        var teamDto = _mapper.Map<TeamViewDTO>(team);
+
+        return Result<TeamViewDTO>.Success(teamDto);
+
     }
 
     public async Task<Result<bool>> UpdateTeamAsync(Team team)

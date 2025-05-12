@@ -1,7 +1,7 @@
 ﻿
 using MediatR;
 using SoccerKFUPM.Application.Common.ResultPattern;
-using SoccerKFUPM.Domain.Entities.Views;
+using SoccerKFUPM.Application.DTOs.ManagerDTOs;
 
 
 namespace SoccerKFUPM.Application.Features.ManagersFeature.Queries.SearchManagers
@@ -19,6 +19,6 @@ namespace SoccerKFUPM.Application.Features.ManagersFeature.Queries.SearchManager
         string? TeamName,
         int PageNumber = 1,
         int PageSize = 10
-    ) : IRequest<ApiResponse<(List<ManagerView> Managers, int TotalCount)>>;
+    ) : IRequest<ApiResponse<List<ManagerSearchViewDTO>>>;
 
 }

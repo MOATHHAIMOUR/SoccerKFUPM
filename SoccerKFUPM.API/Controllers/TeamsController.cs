@@ -8,6 +8,7 @@ using SoccerKFUPM.Application.Features.TeamsFeature.Commands.DeleteTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Commands.UpdateTeam;
 using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeams;
 using SoccerKFUPM.Application.Features.TeamsFeature.Queries.FetchTeamsByTournament;
+using SoccerKFUPM.Application.Features.TeamsFeature.Queries.GetTeamInfoById;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SoccerKFUPM.API.Controllers;
@@ -107,6 +108,27 @@ public class TeamsController : AppController
             TournamentId: tournamentId,
             PageNumber: pageNumber,
             PageSize: pageSize
+        );
+
+        var result = await _mediator.Send(query);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [HttpGet("getTeamById")]
+    [SwaggerOperation(
+        Summary = "Get team by Id",
+        Description = "Get team info by TeamId")]
+    public async Task<ActionResult<ApiResponse<TeamViewDTO>>> GetTeamsById(
+        [FromQuery] int teamId
+        )
+    {
+        var query = new GetTeamInfoByIdQuery(
+            teamId
         );
 
         var result = await _mediator.Send(query);

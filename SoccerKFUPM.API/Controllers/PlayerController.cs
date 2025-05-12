@@ -28,6 +28,18 @@ namespace SoccerKFUPM.API.Controllers
         }
 
 
+        [HttpPost("BulkInsert")]
+        [SwaggerOperation(Summary = "Create a list of players (AddPlayerDTO)", Description = "Send a valid AddPlayerDTO to register a new player in the system.")]
+        public async Task<ActionResult<ApiResponse<bool>>> CreatePlayer([FromBody] List<AddPlayerDTO> playerDTO)
+        {
+            foreach (var player in playerDTO)
+            {
+                await _mediator.Send(new AddPlayerCommand(player));
+            }
+            return Ok();
+        }
+
+
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

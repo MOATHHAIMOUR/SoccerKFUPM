@@ -1,4 +1,5 @@
 using SoccerKFUPM.Application.DTOs.ContactInfoDTOs;
+using SoccerKFUPM.Application.DTOs.TeamDTOs;
 using SoccerKFUPM.Domain.Entities;
 using SoccerKFUPM.Domain.Entities.Enums;
 using SoccerKFUPM.Domain.Entities.Views;
@@ -28,6 +29,10 @@ public class CoachProfile : AutoMapper.Profile
 
         CreateMap<CoachView, CoachViewDTO>();
 
+        CreateMap<AssignCoachIntoTeamDTO, CoachTeam>()
+    .ForMember(dest => dest.JoinedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+
+
         CreateMap<Coache, CoachDTO>()
             .ForMember(dest => dest.KFUPMId, opt => opt.MapFrom(src => src.Person.KFUPMId))
             .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Person.FirstName))
@@ -36,7 +41,7 @@ public class CoachProfile : AutoMapper.Profile
             .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Person.LastName))
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person.DateOfBirth))
             .ForMember(dest => dest.NationalityId, opt => opt.MapFrom(src => src.Person.NationalityId))
-            .ForMember(dest => dest.PersonalContactInfos, opt => opt.MapFrom(src => src.Person.PersonalContactInfos.Select(c => new PersonalContactInfoDTO
+            .ForMember(dest => dest.PersonalContactInfos, opt => opt.MapFrom(src => src.Person.PersonalContactInfos.Select(c => new ContactInfoDTO
             {
                 ContactType = (int)c.ContactType,
                 Value = c.Value

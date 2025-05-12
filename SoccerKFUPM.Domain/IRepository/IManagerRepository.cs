@@ -7,7 +7,7 @@ public interface IManagerRepository
 {
     Task<int?> AddManagerAsync(Manager manager);
     Task<ManagerView?> GetManagerByIdAsync(int managerId);
-    public Task<(List<ManagerView> managers, int totalCount)> SearchManagersAsync(
+    public Task<(List<ManagerSearchView> managers, int totalCount)> SearchManagersAsync(
             string? kfupmId = null,
             string? firstName = null,
             string? secondName = null,

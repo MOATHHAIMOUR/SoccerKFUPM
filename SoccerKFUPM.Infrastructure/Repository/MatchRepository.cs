@@ -119,6 +119,7 @@ public class MatchRepository : IMatchRepository
         {
             Direction = ParameterDirection.Output
         };
+
         command.Parameters.Add(outputId);
 
         await connection.OpenAsync();
@@ -126,6 +127,7 @@ public class MatchRepository : IMatchRepository
 
         return outputId.Value as int?;
     }
+
 
     public async Task<MatchSchedule?> GetMatchScheduleByIdAsync(int id)
     {
@@ -156,4 +158,147 @@ public class MatchRepository : IMatchRepository
             FieldId = reader.GetInt32(reader.GetOrdinal("FieldId"))
         };
     }
+
+    public async Task<bool> ValidatePlayersInTeamInTournamentAsync(int tournamentId, int tournamentTeamId, List<int> playerIds)
+    {
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_ValidatePlayersInTeamInTournament", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        command.Parameters.AddWithValue("@TournamentId", tournamentId);
+        command.Parameters.AddWithValue("@TournamentTeamId", tournamentTeamId);
+
+        // Prepare the TVP
+        var tvp = new DataTable();
+        tvp.Columns.Add("PlayerId", typeof(int));
+        foreach (var id in playerIds)
+            tvp.Rows.Add(id);
+
+        var playerIdsParam = command.Parameters.AddWithValue("@PlayerIds", tvp);
+        playerIdsParam.SqlDbType = SqlDbType.Structured;
+        playerIdsParam.TypeName = "PlayerIdList";
+
+        await connection.OpenAsync();
+        var returnValue = new SqlParameter
+        {
+            Direction = ParameterDirection.ReturnValue
+        };
+        command.Parameters.Add(returnValue);
+
+        await command.ExecuteNonQueryAsync();
+
+        return (int)returnValue.Value == 1;
+    }
+
+
+    public async Task<bool> ValidateTournamentRefereesAsync(
+    int matchScheduleId,
+    List<int> tournamentRefereeIds)
+    {
+        var table = new DataTable();
+        table.Columns.Add("TournamentRefereeId", typeof(int));
+
+        foreach (var id in tournamentRefereeIds)
+            table.Rows.Add(id);
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_ValidateTournamentRefereesInMatch", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        command.Parameters.AddWithValue("@MatchScheduleId", matchScheduleId);
+
+        var tvpParam = command.Parameters.AddWithValue("@TournamentRefereeIds", table);
+        tvpParam.SqlDbType = SqlDbType.Structured;
+        tvpParam.TypeName = "TournamentRefereeIdList";
+
+        await connection.OpenAsync();
+
+        var result = await command.ExecuteScalarAsync();
+        return result != null && Convert.ToBoolean(result);
+    }
+
+
+    public async Task InsertShotsOnGoalAsync(List<ShotOnGoal> shots)
+    {
+        var table = new DataTable();
+        table.Columns.Add("MatchRecordId", typeof(int));
+        table.Columns.Add("Time", typeof(int));
+        table.Columns.Add("PlayerTeamId", typeof(int));
+        table.Columns.Add("GoalkeeperTeamId", typeof(int));
+        table.Columns.Add("ShotType", typeof(int));
+        table.Columns.Add("IsGoal", typeof(bool));
+
+        foreach (var shot in shots)
+        {
+            table.Rows.Add(
+                shot.MatchRecoredId,
+                shot.Time,
+                shot.PlayerTeamId,
+                shot.GoalkeeperTeamId,
+                shot.ShotType,
+                shot.IsGoal
+            );
+        }
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_InsertShotsOnGoal", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        var tvpParam = command.Parameters.AddWithValue("@Shots", table);
+        tvpParam.SqlDbType = SqlDbType.Structured;
+        tvpParam.TypeName = "ShotOnGoalList";
+
+        await connection.OpenAsync();
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<List<Match>> GetUpcomingMatchesByTeamAsync(
+       string? teamName = null,
+       string? tournamentName = null,
+       DateTime? fromDate = null,
+       DateTime? toDate = null,
+       int pageNumber = 1,
+       int pageSize = 10)
+    {
+        var matches = new List<Match>();
+
+        using var connection = new SqlConnection(_connection.ConnectionString);
+        using var command = new SqlCommand("SP_GetUpcomingMatchesByTeam", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        command.Parameters.AddWithValue("@TeamName", (object?)teamName ?? DBNull.Value);
+        command.Parameters.AddWithValue("@TournamentName", (object?)tournamentName ?? DBNull.Value);
+        command.Parameters.AddWithValue("@FromDate", (object?)fromDate ?? DBNull.Value);
+        command.Parameters.AddWithValue("@ToDate", (object?)toDate ?? DBNull.Value);
+        command.Parameters.AddWithValue("@PageNumber", pageNumber);
+        command.Parameters.AddWithValue("@PageSize", pageSize);
+
+        await connection.OpenAsync();
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var match = new Match
+            {
+                MatchScheduleId = reader.GetInt32(reader.GetOrdinal("MatchScheduleId")),
+                TeamAName = reader.GetString(reader.GetOrdinal("TeamAName")),
+                TeamBName = reader.GetString(reader.GetOrdinal("TeamBName")),
+                MatchDate = reader.GetDateTime(reader.GetOrdinal("MatchDate")),
+                TournamentName = reader.GetString(reader.GetOrdinal("TournamentName")),
+            };
+
+            matches.Add(match);
+        }
+
+        return matches;
+    }
+
 }

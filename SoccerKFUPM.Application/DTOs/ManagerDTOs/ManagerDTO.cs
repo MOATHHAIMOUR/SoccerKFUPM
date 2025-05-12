@@ -13,5 +13,5 @@ public class ManagerDTO
     public DateTime DateOfBirth { get; set; }
     public int NationalityId { get; set; }
     public string? TeamName { get; set; }
-    public List<PersonalContactInfoDTO> PersonalContactInfos { get; set; } = [];
+    public List<ContactInfoDTO> PersonalContactInfos { get; set; } = [];
 }

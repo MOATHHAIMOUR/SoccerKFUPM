@@ -1,7 +1,7 @@
 namespace SoccerKFUPM.Domain.Entities.Enums;
 
 /// <summary>
-/// Types of requests in the system
+/// Types of requests in the system 100%
 /// </summary>
 public enum RequestType
 {

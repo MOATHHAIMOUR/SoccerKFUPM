@@ -32,6 +32,24 @@ public class CoachController : AppController
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [HttpPost("BulkInsert")]
+    [SwaggerOperation(
+        Summary = "Add a list of new coachs (AddCoachDTO)",
+        Description = "Creates a new coach with the provided details")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ApiResponse<bool>>> AddBulkCoach([FromBody] List<AddCoachDTO> dto)
+    {
+        foreach (var coach in dto)
+        {
+            await _mediator.Send(new AddCoachCommand(coach));
+        }
+        return Ok();
+    }
+
+
+
     [HttpGet]
     [SwaggerOperation(
         Summary = "Get all coaches",

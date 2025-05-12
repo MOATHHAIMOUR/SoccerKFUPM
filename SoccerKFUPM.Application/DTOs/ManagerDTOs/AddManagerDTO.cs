@@ -13,5 +13,5 @@ public class AddManagerDTO
     public required string LastName { get; set; }
     public required DateTime DateOfBirth { get; set; }
     public int? NationalityId { get; set; }
-    public required List<PersonalContactInfoDTO> PersonalContactInfos { get; set; }
+    public required List<ContactInfoDTO> PersonalContactInfos { get; set; }
 }

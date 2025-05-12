@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using SoccerKFUPM.Domain.Entities;
+using SoccerKFUPM.Domain.Entities.Enums;
 using SoccerKFUPM.Domain.Entities.Views;
 using SoccerKFUPM.Domain.IRepository;
 using System.Data;
@@ -29,6 +30,21 @@ namespace SoccerKFUPM.Infrastructure.Repository
             command.Parameters.AddWithValue("@NumberOfPlayers", team.NumberOfPlayers);
             command.Parameters.AddWithValue("@ManagerId", team.ManagerId);
 
+            // ✅ Build TVP for ContactInfos
+            var contactInfosTable = new DataTable();
+            contactInfosTable.Columns.Add("ContactType", typeof(int));     // as int
+            contactInfosTable.Columns.Add("Value", typeof(string));        // as string
+
+            foreach (var ci in team.TeamContactInfo)
+            {
+                contactInfosTable.Rows.Add(ci.ContactType, ci.Value);
+            }
+
+            var contactInfosParam = command.Parameters.AddWithValue("@ContactInfos", contactInfosTable);
+            contactInfosParam.SqlDbType = SqlDbType.Structured;
+            contactInfosParam.TypeName = "TeamContactInfoTVP";
+
+            // Output param for new TeamId
             var outputId = new SqlParameter("@TeamId", SqlDbType.Int)
             {
                 Direction = ParameterDirection.Output
@@ -104,8 +120,7 @@ namespace SoccerKFUPM.Infrastructure.Repository
                 });
             }
 
-            var totalCount = (int)(totalCountParam.Value ?? 0);
-            return (teams, totalCount);
+            return (teams, teams.Count);
         }
 
         public async Task<TeamView?> GetTeamByIdAsync(int teamId)
@@ -121,9 +136,12 @@ namespace SoccerKFUPM.Infrastructure.Repository
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
+            TeamView? team = null;
+
+            // First result: Team + Manager Info
             if (await reader.ReadAsync())
             {
-                return new TeamView
+                team = new TeamView
                 {
                     TeamId = reader.GetInt32(reader.GetOrdinal("TeamId")),
                     Name = reader.GetString(reader.GetOrdinal("Name")),
@@ -132,11 +150,25 @@ namespace SoccerKFUPM.Infrastructure.Repository
                     NumberOfPlayers = reader.GetInt32(reader.GetOrdinal("NumberOfPlayers")),
                     ManagerId = reader.GetInt32(reader.GetOrdinal("ManagerId")),
                     ManagerFirstName = reader.GetString(reader.GetOrdinal("ManagerFirstName")),
-                    ManagerLastName = reader.GetString(reader.GetOrdinal("ManagerLastName"))
+                    ManagerLastName = reader.GetString(reader.GetOrdinal("ManagerLastName")),
+                    teamContactInfos = new List<TeamContactInfo>()
                 };
             }
 
-            return null;
+            // Second result: Contact Info
+            if (await reader.NextResultAsync() && team != null)
+            {
+                while (await reader.ReadAsync())
+                {
+                    team.teamContactInfos.Add(new TeamContactInfo
+                    {
+                        ContactType = (ContactType)reader.GetInt32(reader.GetOrdinal("ContactType")),
+                        Value = reader.GetString(reader.GetOrdinal("Value"))
+                    });
+                }
+            }
+
+            return team;
         }
 
         public async Task<bool> UpdateTeamAsync(Team team)
